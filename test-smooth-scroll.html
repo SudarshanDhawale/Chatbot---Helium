@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smooth Scroll Behavior Test</title>
+  <style>
+    /* Apply smooth scroll globally */
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #1a2332;
+      color: #f3f4f6;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .test-section {
+      background: #1f2937;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .scrollable-area {
+      height: 300px;
+      overflow-y: auto;
+      background: #0f1419;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 15px 0;
+    }
+
+    /* Add scroll-smooth utility class */
+    .scroll-smooth {
+      scroll-behavior: smooth;
+    }
+
+    .message {
+      background: #374151;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 5px;
+      transition: background 0.2s;
+    }
+
+    .button:hover {
+      background: #2563eb;
+    }
+
+    .status {
+      margin-top: 10px;
+      padding: 10px;
+      background: #374151;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .success {
+      color: #10b981;
+    }
+
+    .info {
+      color: #3b82f6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎯 Smooth Scroll Behavior Test</h1>
+
+    <!-- Test 1: Global smooth scroll -->
+    <div class="test-section">
+      <h2>Test 1: Global Smooth Scroll (HTML element)</h2>
+      <p>This tests the global <code>scroll-behavior: smooth</code> applied to the HTML element.</p>
+      
+      <div id="scrollArea1" class="scrollable-area">
+        <div id="top1" class="message">📍 Top of scrollable area</div>
+        <div class="message">Message 1</div>
+        <div class="message">Message 2</div>
+        <div class="message">Message 3</div>
+        <div class="message">Message 4</div>
+        <div class="message">Message 5</div>
+        <div class="message">Message 6</div>
+        <div class="message">Message 7</div>
+        <div class="message">Message 8</div>
+        <div class="message">Message 9</div>
+        <div id="bottom1" class="message">📍 Bottom of scrollable area</div>
+      </div>
+
+      <button class="button" onclick="scrollToTop1()">Scroll to Top</button>
+      <button class="button" onclick="scrollToBottom1()">Scroll to Bottom</button>
+      
+      <div class="status">
+        <span class="info">✓ Expected: Smooth scrolling animation when clicking buttons</span>
+      </div>
+    </div>
+
+    <!-- Test 2: Utility class smooth scroll -->
+    <div class="test-section">
+      <h2>Test 2: Utility Class Smooth Scroll</h2>
+      <p>This tests the <code>.scroll-smooth</code> utility class (Tailwind equivalent).</p>
+      
+      <div id="scrollArea2" class="scrollable-area scroll-smooth">
+        <div id="top2" class="message">📍 Top of scrollable area</div>
+        <div class="message">Message 1</div>
+        <div class="message">Message 2</div>
+        <div class="message">Message 3</div>
+        <div class="message">Message 4</div>
+        <div class="message">Message 5</div>
+        <div class="message">Message 6</div>
+        <div class="message">Message 7</div>
+        <div class="message">Message 8</div>
+        <div class="message">Message 9</div>
+        <div id="bottom2" class="message">📍 Bottom of scrollable area</div>
+      </div>
+
+      <button class="button" onclick="scrollToTop2()">Scroll to Top</button>
+      <button class="button" onclick="scrollToBottom2()">Scroll to Bottom</button>
+      
+      <div class="status">
+        <span class="info">✓ Expected: Smooth scrolling animation when clicking buttons</span>
+      </div>
+    </div>
+
+    <!-- Test 3: scrollIntoView with behavior: 'smooth' -->
+    <div class="test-section">
+      <h2>Test 3: scrollIntoView with behavior: 'smooth'</h2>
+      <p>This tests the <code>scrollIntoView({ behavior: 'smooth' })</code> method (used in ChatContainer).</p>
+      
+      <div id="scrollArea3" class="scrollable-area">
+        <div id="top3" class="message">📍 Top of scrollable area</div>
+        <div class="message">Message 1</div>
+        <div class="message">Message 2</div>
+        <div class="message">Message 3</div>
+        <div class="message">Message 4</div>
+        <div class="message">Message 5</div>
+        <div class="message">Message 6</div>
+        <div class="message">Message 7</div>
+        <div class="message">Message 8</div>
+        <div class="message">Message 9</div>
+        <div id="bottom3" class="message">📍 Bottom of scrollable area</div>
+      </div>
+
+      <button class="button" onclick="scrollIntoViewTop()">Scroll to Top (scrollIntoView)</button>
+      <button class="button" onclick="scrollIntoViewBottom()">Scroll to Bottom (scrollIntoView)</button>
+      
+      <div class="status">
+        <span class="info">✓ Expected: Smooth scrolling animation when clicking buttons</span>
+      </div>
+    </div>
+
+    <!-- Test 4: Auto-scroll simulation (like new messages) -->
+    <div class="test-section">
+      <h2>Test 4: Auto-Scroll on New Content (Message Simulation)</h2>
+      <p>This simulates the behavior when new messages arrive in the chat.</p>
+      
+      <div id="scrollArea4" class="scrollable-area scroll-smooth">
+        <div class="message">Message 1</div>
+        <div class="message">Message 2</div>
+        <div class="message">Message 3</div>
+        <div id="messagesEnd" class="message">📍 End of messages</div>
+      </div>
+
+      <button class="button" onclick="addMessage()">Add New Message (Auto-scroll)</button>
+      <button class="button" onclick="resetMessages()">Reset Messages</button>
+      
+      <div class="status">
+        <span class="info">✓ Expected: Smooth scroll to bottom when new message is added</span>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="test-section">
+      <h2>✅ Implementation Summary</h2>
+      <ul>
+        <li><strong>Global smooth scroll:</strong> Applied to <code>html</code> element in globals.css</li>
+        <li><strong>Chat container:</strong> Uses <code>scroll-smooth</code> utility class</li>
+        <li><strong>Sidebar:</strong> Uses <code>scroll-smooth</code> utility class</li>
+        <li><strong>scrollToBottom function:</strong> Uses <code>scrollIntoView({ behavior: 'smooth' })</code></li>
+      </ul>
+      
+      <div class="status">
+        <span class="success">✓ All scroll operations should now be smooth and animated</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let messageCount = 3;
+
+    // Test 1: Global smooth scroll
+    function scrollToTop1() {
+      document.getElementById('scrollArea1').scrollTop = 0;
+    }
+
+    function scrollToBottom1() {
+      const area = document.getElementById('scrollArea1');
+      area.scrollTop = area.scrollHeight;
+    }
+
+    // Test 2: Utility class smooth scroll
+    function scrollToTop2() {
+      document.getElementById('scrollArea2').scrollTop = 0;
+    }
+
+    function scrollToBottom2() {
+      const area = document.getElementById('scrollArea2');
+      area.scrollTop = area.scrollHeight;
+    }
+
+    // Test 3: scrollIntoView
+    function scrollIntoViewTop() {
+      document.getElementById('top3').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function scrollIntoViewBottom() {
+      document.getElementById('bottom3').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Test 4: Auto-scroll simulation
+    function addMessage() {
+      messageCount++;
+      const messagesEnd = document.getElementById('messagesEnd');
+      const newMessage = document.createElement('div');
+      newMessage.className = 'message';
+      newMessage.textContent = `Message ${messageCount}`;
+      messagesEnd.parentNode.insertBefore(newMessage, messagesEnd);
+      
+      // Simulate the scrollToBottom behavior from ChatContainer
+      messagesEnd.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function resetMessages() {
+      const area = document.getElementById('scrollArea4');
+      area.innerHTML = `
+        <div class="message">Message 1</div>
+        <div class="message">Message 2</div>
+        <div class="message">Message 3</div>
+        <div id="messagesEnd" class="message">📍 End of messages</div>
+      `;
+      messageCount = 3;
+    }
+  </script>
+</body>
+</html>

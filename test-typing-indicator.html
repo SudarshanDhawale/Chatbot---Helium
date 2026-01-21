@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typing Indicator Test</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 40px;
+      background-color: #1a2332;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      align-items: center;
+    }
+
+    h1 {
+      color: #f3f4f6;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    .message-container {
+      max-width: 600px;
+      width: 100%;
+      background-color: rgba(31, 41, 55, 0.6);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      padding: 20px;
+      color: #f3f4f6;
+    }
+
+    .message-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 12px;
+      opacity: 0.7;
+    }
+
+    .message-content {
+      line-height: 1.6;
+    }
+
+    /* Smooth bouncing dots animation matching new theme */
+    @keyframes bounce {
+      0%, 60%, 100% {
+        transform: translateY(0) scale(1);
+        opacity: 0.7;
+      }
+      30% {
+        transform: translateY(-8px) scale(1.1);
+        opacity: 1;
+      }
+    }
+
+    .bouncing-dots {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      height: 16px;
+      margin-left: 4px;
+    }
+
+    .bouncing-dots div {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: #3b82f6;
+      animation: bounce 1.2s ease-in-out infinite both;
+      box-shadow: 0 0 4px rgba(59, 130, 246, 0.4);
+    }
+
+    .bouncing-dots div:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    .bouncing-dots div:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .bouncing-dots div:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    .old-animation {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
+      margin-left: 4px;
+    }
+
+    @keyframes bounce-old {
+      0%, 80%, 100% {
+        transform: scale(0);
+      }
+      40% {
+        transform: scale(1);
+      }
+    }
+
+    .old-animation div {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.7);
+      animation: bounce-old 1.4s ease-in-out infinite both;
+    }
+
+    .old-animation div:nth-child(1) {
+      animation-delay: -0.32s;
+    }
+
+    .old-animation div:nth-child(2) {
+      animation-delay: -0.16s;
+    }
+
+    .comparison {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .section-title {
+      color: #9ca3af;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Typing Indicator Animation Test</h1>
+  
+  <div class="comparison">
+    <div>
+      <div class="section-title">New Animation (Smooth Bounce)</div>
+      <div class="message-container">
+        <div class="message-header">
+          <span>HELIUM</span>
+          <span>Just now</span>
+        </div>
+        <div class="message-content">
+          Thinking
+          <span class="bouncing-dots">
+            <div></div>
+            <div></div>
+            <div></div>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-title">Old Animation (Scale)</div>
+      <div class="message-container">
+        <div class="message-header">
+          <span>HELIUM</span>
+          <span>Just now</span>
+        </div>
+        <div class="message-content">
+          Thinking
+          <span class="old-animation">
+            <div></div>
+            <div></div>
+            <div></div>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="color: #9ca3af; margin-top: 40px; max-width: 600px; text-align: center; font-size: 14px;">
+    <p><strong>New Animation Features:</strong></p>
+    <ul style="text-align: left; line-height: 1.8;">
+      <li>Smoother vertical bounce motion (translateY) instead of scale</li>
+      <li>Blue accent color (#3b82f6) matching the theme</li>
+      <li>Subtle glow effect with box-shadow</li>
+      <li>Faster animation (1.2s vs 1.4s)</li>
+      <li>Better timing with sequential delays (0s, 0.2s, 0.4s)</li>
+      <li>Slightly smaller dots (6px vs 8px) for refinement</li>
+    </ul>
+  </div>
+</body>
+</html>

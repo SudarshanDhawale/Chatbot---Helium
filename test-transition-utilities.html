@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transition Utilities Test</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          transitionDuration: {
+            'fast': '150ms',
+            'normal': '200ms',
+            'slow': '300ms',
+          },
+          transitionTimingFunction: {
+            'DEFAULT': 'cubic-bezier(0.4, 0, 0.2, 1)', // ease-in-out
+          },
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-gray-900 p-8">
+  <div class="max-w-2xl mx-auto space-y-8">
+    <h1 class="text-3xl font-bold text-white mb-8">Transition Utilities Test</h1>
+    
+    <!-- Fast transition (150ms) -->
+    <div class="bg-gray-800 p-6 rounded-lg">
+      <h2 class="text-xl text-white mb-4">Fast Transition (150ms)</h2>
+      <button class="bg-blue-500 text-white px-6 py-3 rounded-lg transition-all duration-fast hover:bg-blue-600 hover:scale-105">
+        Hover Me - Fast
+      </button>
+    </div>
+    
+    <!-- Normal transition (200ms) -->
+    <div class="bg-gray-800 p-6 rounded-lg">
+      <h2 class="text-xl text-white mb-4">Normal Transition (200ms)</h2>
+      <button class="bg-green-500 text-white px-6 py-3 rounded-lg transition-all duration-normal hover:bg-green-600 hover:scale-105">
+        Hover Me - Normal
+      </button>
+    </div>
+    
+    <!-- Slow transition (300ms) -->
+    <div class="bg-gray-800 p-6 rounded-lg">
+      <h2 class="text-xl text-white mb-4">Slow Transition (300ms)</h2>
+      <button class="bg-purple-500 text-white px-6 py-3 rounded-lg transition-all duration-slow hover:bg-purple-600 hover:scale-105">
+        Hover Me - Slow
+      </button>
+    </div>
+    
+    <!-- Default easing (ease-in-out) -->
+    <div class="bg-gray-800 p-6 rounded-lg">
+      <h2 class="text-xl text-white mb-4">Default Easing (ease-in-out)</h2>
+      <div class="bg-orange-500 w-32 h-32 rounded-lg transition-all duration-slow hover:translate-x-64">
+        Hover to slide
+      </div>
+    </div>
+    
+    <div class="bg-gray-800 p-6 rounded-lg">
+      <h2 class="text-xl text-white mb-4">Usage Examples</h2>
+      <pre class="text-sm text-gray-300 bg-gray-900 p-4 rounded overflow-x-auto"><code>// Fast transition (150ms)
+transition-all duration-fast
+
+// Normal transition (200ms)
+transition-all duration-normal
+
+// Slow transition (300ms)
+transition-all duration-slow
+
+// Default easing is ease-in-out
+// Applied automatically with transition classes</code></pre>
+    </div>
+  </div>
+</body>
+</html>

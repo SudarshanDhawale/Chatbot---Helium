@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mobile UI Hiding Test - Chat UI Redesign</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'navy-950': '#0f1419',
+            'navy-900': '#1a2332',
+            'navy-800': '#1f2937',
+            'navy-700': '#374151',
+            'blue-accent': '#3b82f6',
+            'blue-accent-hover': '#2563eb',
+            'text-primary': '#f3f4f6',
+            'text-secondary': '#9ca3af',
+            'text-muted': '#6b7280',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .test-section {
+      border: 2px solid #3b82f6;
+      margin: 1rem;
+      padding: 1rem;
+      border-radius: 0.5rem;
+    }
+    .test-label {
+      background: #3b82f6;
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      display: inline-block;
+      margin-bottom: 0.5rem;
+    }
+    .viewport-indicator {
+      position: fixed;
+      top: 0;
+      right: 0;
+      background: rgba(59, 130, 246, 0.9);
+      color: white;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      z-index: 9999;
+      border-bottom-left-radius: 0.5rem;
+    }
+  </style>
+</head>
+<body class="bg-navy-900 text-text-primary">
+  <div class="viewport-indicator">
+    Viewport: <span id="viewport-width"></span>px
+  </div>
+
+  <div class="p-4 pt-12">
+    <h1 class="text-2xl font-bold mb-4 text-center">Mobile UI Hiding Test</h1>
+    <p class="text-sm text-text-secondary text-center mb-6">
+      Resize your browser window to test responsive behavior. Elements should hide on narrow viewports (&lt;640px).
+    </p>
+
+    <!-- Test 1: Header Score Indicator -->
+    <div class="test-section bg-navy-800">
+      <div class="test-label">Test 1: Score Indicator (6/75)</div>
+      <div class="flex items-center justify-between p-4 bg-navy-900 rounded-lg">
+        <div class="text-lg font-semibold">AI BRAIN</div>
+        <div class="flex items-center gap-2">
+          <!-- Score should be hidden on mobile -->
+          <span class="hidden sm:block text-sm font-medium text-gray-300">
+            6/75
+          </span>
+          <div class="w-9 h-9 bg-blue-accent rounded-full flex items-center justify-center text-white font-semibold">
+            U
+          </div>
+        </div>
+      </div>
+      <div class="mt-2 text-xs text-text-secondary">
+        ✓ Score "6/75" should be hidden on mobile (&lt;640px)<br>
+        ✓ Avatar should remain visible
+      </div>
+    </div>
+
+    <!-- Test 2: Folder Icon Button -->
+    <div class="test-section bg-navy-800">
+      <div class="test-label">Test 2: Folder Icon Button</div>
+      <div class="flex items-center justify-between p-4 bg-navy-900 rounded-lg">
+        <div class="text-lg font-semibold">AI BRAIN</div>
+        <div class="flex items-center gap-3">
+          <!-- Folder button should be hidden on mobile -->
+          <button class="hidden sm:block p-2 text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded-lg transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+            </svg>
+          </button>
+          <div class="w-9 h-9 bg-blue-accent rounded-full flex items-center justify-center text-white font-semibold">
+            U
+          </div>
+        </div>
+      </div>
+      <div class="mt-2 text-xs text-text-secondary">
+        ✓ Folder icon should be hidden on mobile (&lt;640px)<br>
+        ✓ Avatar should remain visible
+      </div>
+    </div>
+
+    <!-- Test 3: Message Timestamp -->
+    <div class="test-section bg-navy-800">
+      <div class="test-label">Test 3: Message Timestamp</div>
+      <div class="max-w-lg rounded-2xl px-5 py-4 backdrop-blur-md bg-navy-800/60">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-medium opacity-70">HELIUM</span>
+          <!-- Timestamp should be hidden on mobile -->
+          <span class="hidden sm:block text-xs opacity-70">2:30 PM</span>
+        </div>
+        <div class="text-sm">This is a sample message to test timestamp visibility.</div>
+      </div>
+      <div class="mt-2 text-xs text-text-secondary">
+        ✓ Timestamp should be hidden on mobile (&lt;640px)<br>
+        ✓ Sender name should remain visible
+      </div>
+    </div>
+
+    <!-- Test 4: Message Actions -->
+    <div class="test-section bg-navy-800">
+      <div class="test-label">Test 4: Message Actions (Thumbs Up/Down, Copy)</div>
+      <div class="max-w-lg rounded-2xl px-5 py-4 backdrop-blur-md bg-navy-800/60">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-medium opacity-70">HELIUM</span>
+          <span class="hidden sm:block text-xs opacity-70">2:30 PM</span>
+        </div>
+        <div class="text-sm mb-2">This is a sample assistant message with actions.</div>
+        <!-- Message actions should be hidden on mobile -->
+        <div class="hidden sm:flex items-center gap-1 mt-2">
+          <button class="p-1.5 rounded-lg transition-all duration-150 hover:bg-navy-700/50 text-text-secondary">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+            </svg>
+          </button>
+          <button class="p-1.5 rounded-lg transition-all duration-150 hover:bg-navy-700/50 text-text-secondary">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+            </svg>
+          </button>
+          <button class="p-1.5 rounded-lg transition-all duration-150 hover:bg-navy-700/50 text-text-secondary">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="mt-2 text-xs text-text-secondary">
+        ✓ Message actions should be hidden on mobile (&lt;640px)<br>
+        ✓ Message content should remain visible
+      </div>
+    </div>
+
+    <!-- Test 5: Conversation Message Count -->
+    <div class="test-section bg-navy-800">
+      <div class="test-label">Test 5: Conversation Message Count</div>
+      <div class="p-4 rounded-xl bg-navy-900 border border-navy-700">
+        <p class="text-sm font-semibold text-text-primary mb-1">Sample Conversation</p>
+        <p class="text-xs text-text-secondary line-clamp-2 mb-2">This is a preview of the last message...</p>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-medium text-text-muted">2 hours ago</span>
+          <!-- Message count should be hidden on mobile -->
+          <span class="hidden sm:inline text-xs text-text-muted/50">•</span>
+          <span class="hidden sm:inline text-xs font-medium text-text-muted">5 messages</span>
+        </div>
+      </div>
+      <div class="mt-2 text-xs text-text-secondary">
+        ✓ Message count should be hidden on mobile (&lt;640px)<br>
+        ✓ Timestamp should remain visible
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="test-section bg-blue-accent/10 border-blue-accent">
+      <div class="test-label">Summary</div>
+      <div class="text-sm space-y-2">
+        <p><strong>Hidden on Mobile (&lt;640px):</strong></p>
+        <ul class="list-disc list-inside space-y-1 text-text-secondary">
+          <li>Score/Status Indicator (6/75) in header</li>
+          <li>Folder icon button in header</li>
+          <li>Message timestamps</li>
+          <li>Message action buttons (thumbs up/down, copy)</li>
+          <li>Conversation message count</li>
+        </ul>
+        <p class="mt-4"><strong>Always Visible:</strong></p>
+        <ul class="list-disc list-inside space-y-1 text-text-secondary">
+          <li>User avatar</li>
+          <li>Message sender name</li>
+          <li>Message content</li>
+          <li>Core functionality (send, input, navigation)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="mt-6 p-4 bg-navy-800 rounded-lg text-center">
+      <p class="text-sm text-text-secondary">
+        <strong>Testing Instructions:</strong><br>
+        1. Resize your browser window to &lt;640px width (mobile)<br>
+        2. Verify that non-essential elements are hidden<br>
+        3. Resize to &gt;640px width (desktop)<br>
+        4. Verify that all elements are visible
+      </p>
+    </div>
+  </div>
+
+  <script>
+    // Update viewport width indicator
+    function updateViewportWidth() {
+      const width = window.innerWidth;
+      document.getElementById('viewport-width').textContent = width;
+    }
+    
+    updateViewportWidth();
+    window.addEventListener('resize', updateViewportWidth);
+  </script>
+</body>
+</html>

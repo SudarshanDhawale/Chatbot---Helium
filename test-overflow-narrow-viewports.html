@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Narrow Viewport Overflow Test</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'navy-950': '#0f1419',
+            'navy-900': '#1a2332',
+            'navy-800': '#1f2937',
+            'navy-700': '#374151',
+            'blue-accent': '#3b82f6',
+            'text-primary': '#f3f4f6',
+            'text-secondary': '#9ca3af',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .overflow-wrap-anywhere {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    
+    .test-container {
+      border: 2px solid #3b82f6;
+      margin: 10px auto;
+      background: #1a2332;
+      position: relative;
+    }
+    
+    .viewport-label {
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      background: #3b82f6;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      z-index: 10;
+    }
+    
+    .status-indicator {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      z-index: 10;
+    }
+    
+    .status-pass {
+      background: #10b981;
+      color: white;
+    }
+    
+    .status-fail {
+      background: #ef4444;
+      color: white;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 p-4">
+  <div class="max-w-6xl mx-auto">
+    <h1 class="text-white text-3xl mb-4 text-center font-bold">Horizontal Overflow Test</h1>
+    <p class="text-gray-400 text-center mb-6">Testing narrow viewports: 320px, 375px, 414px</p>
+    
+    <!-- 320px viewport -->
+    <div class="test-container overflow-x-hidden" style="width: 320px;" id="viewport-320">
+      <div class="viewport-label">320px</div>
+      <div class="status-indicator status-pass" id="status-320">✓ PASS</div>
+      
+      <div class="p-4 overflow-x-hidden">
+        <!-- User message with long word -->
+        <div class="flex w-full mb-2 justify-end">
+          <div class="max-w-[calc(100%-2rem)] sm:max-w-lg rounded-2xl px-5 py-4 backdrop-blur-md bg-blue-accent/20 text-text-primary">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-medium opacity-70">You</span>
+              <span class="text-xs opacity-70">2:30 PM</span>
+            </div>
+            <div class="break-words overflow-wrap-anywhere leading-relaxed">
+              This is a test with verylongwordthatdoesnotcontainanyspacesorbreakpointsandshouldtestwhetherwordbreakingworksproprly
+            </div>
+          </div>
+        </div>
+
+        <!-- Assistant message with long URL -->
+        <div class="flex w-full mb-2 justify-start">
+          <div class="max-w-[calc(100%-2rem)] sm:max-w-lg rounded-2xl px-5 py-4 backdrop-blur-md bg-navy-800/60 text-text-primary">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-medium opacity-70">HELIUM</span>
+              <span class="text-xs opacity-70">2:31 PM</span>
+            </div>
+            <div class="break-words overflow-wrap-anywhere leading-relaxed">
+              Here's a URL: https://www.example.com/very/long/path/that/should/wrap/properly/without/causing/horizontal/overflow/issues
+            </div>
+          </div>
+        </div>
+
+        <!-- File list -->
+        <div class="flex w-full mb-2 justify-start">
+          <div class="max-w-[calc(100%-2rem)] sm:max-w-lg rounded-2xl px-5 py-4 backdrop-blur-md bg-navy-800/60 text-text-primary">
+            <div class="w-full flex items-center justify-between bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-2.5 text-sm">
+              <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                <svg class="w-5 h-5 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                <span class="font-mono text-gray-100 truncate">very-long-filename-that-should-truncate-properly.pdf</span>
+              </div>
+              <span class="text-xs text-gray-400 flex-shrink-0 ml-2">2.5 MB</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 375px viewport -->
+    <div class="test-container overflow-x-hidden" style="width: 375px;" id="viewport-375">
+      <div class="viewport-label">375px</div>
+      <div class="status-indicator status-pass" id="status-375">✓ PASS</div>
+      
+      <div class="p-4 overflow-x-hidden">
+        <!-- User message with long word -->
+        <div class="flex w-full mb-2 justify-end">
+          <div class="max-w-[calc(100%-2rem)] sm:max-w-lg rounded-2xl px-5 py-4 backdrop-blur-md bg-blue-accent/20 text-text-primary">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-medium opacity-70">You</span>
+              <span class="text-xs opacity-70">2:30 PM</span>
+            </div>
+            <div class="break-words overflow-wrap-anywhere leading-relaxed">
+              This is a test with verylongwordthatdoesnotcontainanyspacesorbreakpointsandshouldtestwhetherwordbreakingworksproprly
+            </div>
+          </div>
+        </div>
+
+        <!-- Assistant message with long URL -->
+        <div class="flex w-full mb-2 justify-start">
+          <div class="max-w-[calc(100%-2rem)] sm:max-w-lg rounded-2xl px-5 py-4 backdrop-blur-md bg-navy-800/60 text-text-primary">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-medium opacity-70">HELIUM</span>
+              <span class="text-xs opacity-70">2:31 PM</span>
+            </div>
+            <div class="break-words overflow-wrap-anywhere leading-relaxed">
+              Here's a URL: https://www.example.com/very/long/path/that/should/wrap/properly/without/causing/horizontal/overflow/issues
+            </div>
+          </div>
+        </div>
+
+        <!-- File list -->
+        <div class="flex w-full mb-2 justify-start">
+          <div class="max-w-[calc(100%-2rem)] sm:max-w-lg rounded-2xl px-5 py-4 backdrop-blur-md bg-navy-800/60 text-text-primary">
+            <div class="w-full flex items-center justify-between bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-2.5 text-sm">
+              <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                <svg class="w-5 h-5 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                <span class="font-mono text-gray-100 truncate">very-long-filename-that-should-truncate-properly.pdf</span>
+              </div>
+              <span class="text-xs text-gray-400 flex-shrink-0 ml-2">2.5 MB</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 414px viewport -->
+    <div class="test-container overflow-x-hidden" style="width: 414px;" id="viewport-414">
+      <div class="viewport-label">414px</div>
+      <div class="status-indicator status-pass" id="status-414">✓ PASS</div>
+      
+      <div class="p-4 overflow-x-hidden">
+        <!-- User message with long word -->
+        <div class="flex w-full mb-2 justify-end">
+          <div class="max-w-[calc(100%-2rem)] sm:max-w-lg rounded-2xl px-5 py-4 backdrop-blur-md bg-blue-accent/20 text-text-primary">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-medium opacity-70">You</span>
+              <span class="text-xs opacity-70">2:30 PM</span>
+            </div>
+            <div class="break-words overflow-wrap-anywhere leading-relaxed">
+              This is a test with verylongwordthatdoesnotcontainanyspacesorbreakpointsandshouldtestwhetherwordbreakingworksproprly
+            </div>
+          </div>
+        </div>
+
+        <!-- Assistant message with long URL -->
+        <div class="flex w-full mb-2 justify-start">
+          <div class="max-w-[calc(100%-2rem)] sm:max-w-lg rounded-2xl px-5 py-4 backdrop-blur-md bg-navy-800/60 text-text-primary">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-medium opacity-70">HELIUM</span>
+              <span class="text-xs opacity-70">2:31 PM</span>
+            </div>
+            <div class="break-words overflow-wrap-anywhere leading-relaxed">
+              Here's a URL: https://www.example.com/very/long/path/that/should/wrap/properly/without/causing/horizontal/overflow/issues
+            </div>
+          </div>
+        </div>
+
+        <!-- File list -->
+        <div class="flex w-full mb-2 justify-start">
+          <div class="max-w-[calc(100%-2rem)] sm:max-w-lg rounded-2xl px-5 py-4 backdrop-blur-md bg-navy-800/60 text-text-primary">
+            <div class="w-full flex items-center justify-between bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-2.5 text-sm">
+              <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                <svg class="w-5 h-5 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                <span class="font-mono text-gray-100 truncate">very-long-filename-that-should-truncate-properly.pdf</span>
+              </div>
+              <span class="text-xs text-gray-400 flex-shrink-0 ml-2">2.5 MB</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 p-4 bg-navy-800 rounded-lg">
+      <h2 class="text-white text-xl mb-2 font-bold">Test Results</h2>
+      <div id="results" class="text-gray-300 space-y-1"></div>
+    </div>
+  </div>
+
+  <script>
+    function checkOverflow(viewportId, statusId) {
+      const viewport = document.getElementById(viewportId);
+      const status = document.getElementById(statusId);
+      const hasOverflow = viewport.scrollWidth > viewport.clientWidth;
+      
+      if (hasOverflow) {
+        status.textContent = '✗ FAIL';
+        status.className = 'status-indicator status-fail';
+        viewport.style.borderColor = '#ef4444';
+        return false;
+      } else {
+        status.textContent = '✓ PASS';
+        status.className = 'status-indicator status-pass';
+        viewport.style.borderColor = '#10b981';
+        return true;
+      }
+    }
+    
+    function runTests() {
+      const results = [];
+      
+      results.push({
+        viewport: '320px',
+        passed: checkOverflow('viewport-320', 'status-320')
+      });
+      
+      results.push({
+        viewport: '375px',
+        passed: checkOverflow('viewport-375', 'status-375')
+      });
+      
+      results.push({
+        viewport: '414px',
+        passed: checkOverflow('viewport-414', 'status-414')
+      });
+      
+      // Display results
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = '';
+      
+      results.forEach(result => {
+        const div = document.createElement('div');
+        div.textContent = `${result.viewport}: ${result.passed ? '✓ PASS - No horizontal overflow' : '✗ FAIL - Horizontal overflow detected'}`;
+        div.className = result.passed ? 'text-green-400' : 'text-red-400';
+        resultsDiv.appendChild(div);
+      });
+      
+      const allPassed = results.every(r => r.passed);
+      const summary = document.createElement('div');
+      summary.textContent = allPassed ? '✓ All tests passed!' : '✗ Some tests failed';
+      summary.className = `mt-4 font-bold text-lg ${allPassed ? 'text-green-400' : 'text-red-400'}`;
+      resultsDiv.appendChild(summary);
+    }
+    
+    // Run tests on load
+    window.addEventListener('load', () => {
+      setTimeout(runTests, 100);
+    });
+    
+    // Re-run on resize
+    window.addEventListener('resize', () => {
+      setTimeout(runTests, 100);
+    });
+  </script>
+</body>
+</html>

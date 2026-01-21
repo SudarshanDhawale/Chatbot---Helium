@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Message Fade-In Animation Test</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'navy-950': '#0f1419',
+            'navy-900': '#1a2332',
+            'navy-800': '#1f2937',
+            'navy-700': '#374151',
+            'blue-accent': '#3b82f6',
+            'text-primary': '#f3f4f6',
+            'text-secondary': '#9ca3af',
+          },
+          keyframes: {
+            'fade-in': {
+              '0%': { opacity: '0', transform: 'translateY(8px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+          },
+          animation: {
+            'fade-in': 'fade-in 250ms ease-out',
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    body {
+      background-color: #1a2332;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+  </style>
+</head>
+<body class="p-8">
+  <div class="max-w-3xl mx-auto">
+    <h1 class="text-2xl font-bold text-text-primary mb-6">Message Fade-In Animation Test</h1>
+    <p class="text-text-secondary mb-4">Click the button to add a new message with fade-in animation (250ms)</p>
+    
+    <button 
+      id="addMessage" 
+      class="bg-blue-accent hover:bg-blue-600 text-white px-4 py-2 rounded-lg mb-6 transition-colors"
+    >
+      Add New Message
+    </button>
+    
+    <div id="messages" class="space-y-4">
+      <!-- Messages will be added here -->
+    </div>
+  </div>
+
+  <script>
+    let messageCount = 0;
+    const messagesContainer = document.getElementById('messages');
+    const addButton = document.getElementById('addMessage');
+
+    const messageTemplates = [
+      { role: 'user', content: 'Hello! This is a test message from the user.' },
+      { role: 'assistant', content: 'Hi there! This is a response from the assistant. The fade-in animation should be subtle and smooth.' },
+      { role: 'user', content: 'Can you help me with something?' },
+      { role: 'assistant', content: 'Of course! I\'d be happy to help. What do you need assistance with?' },
+    ];
+
+    function addMessage() {
+      messageCount++;
+      const template = messageTemplates[(messageCount - 1) % messageTemplates.length];
+      const isUser = template.role === 'user';
+      
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `flex w-full mb-2 animate-fade-in ${isUser ? 'justify-end' : 'justify-start'}`;
+      
+      messageDiv.innerHTML = `
+        <div class="max-w-lg rounded-2xl px-5 py-4 backdrop-blur-md ${
+          isUser 
+            ? 'bg-blue-accent/20 text-text-primary' 
+            : 'bg-navy-800/60 text-text-primary'
+        }">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-medium opacity-70">
+              ${isUser ? 'You' : 'HELIUM'}
+            </span>
+            <span class="text-xs opacity-70">
+              ${new Date().toLocaleTimeString()}
+            </span>
+          </div>
+          <div class="break-words leading-relaxed">
+            ${template.content}
+          </div>
+        </div>
+      `;
+      
+      messagesContainer.appendChild(messageDiv);
+      
+      // Scroll to the new message
+      messageDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+
+    addButton.addEventListener('click', addMessage);
+    
+    // Add initial messages
+    addMessage();
+    setTimeout(() => addMessage(), 500);
+  </script>
+</body>
+</html>

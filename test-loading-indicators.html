@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loading Indicators Test - Task 17 Enhancements</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'navy-950': '#0f1419',
+            'navy-900': '#1a2332',
+            'navy-800': '#1f2937',
+            'navy-700': '#374151',
+            'blue-accent': '#3b82f6',
+            'blue-accent-hover': '#2563eb',
+            'text-primary': '#f3f4f6',
+            'text-secondary': '#9ca3af',
+            'text-muted': '#6b7280',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #1a2332;
+      color: #f3f4f6;
+    }
+    
+    @keyframes bounce {
+      0%, 60%, 100% {
+        transform: translateY(0) scale(1);
+        opacity: 0.7;
+      }
+      30% {
+        transform: translateY(-8px) scale(1.1);
+        opacity: 1;
+      }
+    }
+    
+    .bouncing-dots {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      height: 16px;
+    }
+    
+    .bouncing-dots div {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: #3b82f6;
+      animation: bounce 1.2s ease-in-out infinite both;
+      box-shadow: 0 0 4px rgba(59, 130, 246, 0.4);
+    }
+    
+    .bouncing-dots div:nth-child(1) {
+      animation-delay: 0s;
+    }
+    
+    .bouncing-dots div:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    
+    .bouncing-dots div:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+  </style>
+</head>
+<body class="p-8">
+  <div class="max-w-4xl mx-auto space-y-8">
+    <h1 class="text-3xl font-bold mb-8">Task 17 Enhancements - Loading Indicators Test</h1>
+    
+    <!-- Task 17.3: File Upload Progress Indicator -->
+    <section class="bg-navy-800 rounded-lg p-6">
+      <h2 class="text-xl font-semibold mb-4">Task 17.3: File Upload Progress Indicator</h2>
+      <div class="space-y-4">
+        <div class="flex items-center justify-center gap-2 mb-2">
+          <div class="animate-spin rounded-full h-4 w-4 border-2 border-blue-accent border-t-transparent"></div>
+          <span class="text-sm text-text-secondary">Uploading 3 files...</span>
+        </div>
+        <div class="flex flex-wrap gap-2 justify-center">
+          <div class="flex items-center gap-2 bg-navy-800/60 backdrop-blur-md border border-navy-700 rounded-2xl px-3 py-2 text-sm">
+            <span class="text-text-primary font-medium">image1.jpg</span>
+            <button class="text-text-secondary hover:text-text-primary transition-colors">×</button>
+          </div>
+          <div class="flex items-center gap-2 bg-navy-800/60 backdrop-blur-md border border-navy-700 rounded-2xl px-3 py-2 text-sm">
+            <span class="text-text-primary font-medium">document.pdf</span>
+            <button class="text-text-secondary hover:text-text-primary transition-colors">×</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Task 17.5: Button Disabled States -->
+    <section class="bg-navy-800 rounded-lg p-6">
+      <h2 class="text-xl font-semibold mb-4">Task 17.5: Button Disabled States</h2>
+      <div class="flex gap-4">
+        <button class="w-11 h-11 bg-blue-accent text-white rounded-full hover:bg-blue-accent-hover transition-all duration-200 flex items-center justify-center shadow-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+          </svg>
+        </button>
+        <button disabled class="w-11 h-11 bg-blue-accent text-white rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center shadow-lg">
+          <div class="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+        </button>
+        <button disabled class="w-11 h-11 bg-blue-accent text-white rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center shadow-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+          </svg>
+        </button>
+      </div>
+      <p class="text-sm text-text-secondary mt-2">Left: Normal, Middle: Uploading (disabled), Right: Disabled</p>
+    </section>
+    
+    <!-- Task 17.7: Loading Animations -->
+    <section class="bg-navy-800 rounded-lg p-6">
+      <h2 class="text-xl font-semibold mb-4">Task 17.7: All Loading Indicators</h2>
+      <div class="space-y-6">
+        <!-- Typing Indicator -->
+        <div>
+          <h3 class="text-sm font-semibold mb-2">Typing Indicator (Bouncing Dots)</h3>
+          <div class="bouncing-dots">
+            <div></div>
+            <div></div>
+            <div></div>
+          </div>
+        </div>
+        
+        <!-- Spinner -->
+        <div>
+          <h3 class="text-sm font-semibold mb-2">Spinner (Rotating Circle)</h3>
+          <div class="animate-spin rounded-full h-8 w-8 border-2 border-blue-accent border-t-transparent"></div>
+        </div>
+        
+        <!-- Tool Execution -->
+        <div>
+          <h3 class="text-sm font-semibold mb-2">Tool Execution Status</h3>
+          <div class="inline-flex items-center gap-3 bg-gray-800 border border-gray-700 rounded-full px-4 py-3">
+            <div class="flex-shrink-0 w-8 h-8 border border-gray-600 rounded-lg flex items-center justify-center">
+              <svg class="w-4 h-4 text-gray-300 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" stroke-dasharray="3 4" stroke-linecap="round" fill="none"/>
+              </svg>
+            </div>
+            <span class="text-sm font-semibold text-gray-300">Running command...</span>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Task 17.9: Error State Styling -->
+    <section class="bg-navy-800 rounded-lg p-6">
+      <h2 class="text-xl font-semibold mb-4">Task 17.9: Error State Styling</h2>
+      <div class="space-y-4">
+        <!-- Message Error -->
+        <div class="bg-red-900/30 text-red-300 border border-red-800 rounded-2xl px-5 py-4">
+          <div class="flex items-center gap-2 text-sm font-semibold">
+            <svg class="w-4 h-4 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Failed to send message: Network error</span>
+          </div>
+        </div>
+        
+        <!-- Error Banner -->
+        <div class="bg-red-900/30 border border-red-800 rounded-lg px-6 py-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <p class="text-sm font-semibold text-red-300">An error occurred while processing your request</p>
+            </div>
+            <button class="text-red-400 hover:text-red-300 transition-colors">×</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Task 17.11: Success Confirmation -->
+    <section class="bg-navy-800 rounded-lg p-6">
+      <h2 class="text-xl font-semibold mb-4">Task 17.11: Success Confirmation Feedback</h2>
+      <div class="space-y-4">
+        <!-- Completed Message -->
+        <div class="bg-navy-800/60 rounded-2xl px-5 py-4">
+          <p class="text-text-primary mb-2">This is a completed assistant message.</p>
+          <div class="flex items-center gap-1.5 justify-end">
+            <span class="text-xs text-green-400 font-medium">Completed</span>
+            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+          </div>
+        </div>
+        
+        <!-- Copy Success -->
+        <div class="flex gap-2">
+          <button class="p-2 rounded-lg transition-all duration-150 hover:bg-navy-700/50 text-text-secondary">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+            </svg>
+          </button>
+          <button class="p-2 rounded-lg transition-all duration-150 bg-navy-700/30 text-green-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+          </button>
+        </div>
+        <p class="text-sm text-text-secondary">Left: Normal copy button, Right: Success state (copied)</p>
+      </div>
+    </section>
+    
+    <!-- Interactive Demo -->
+    <section class="bg-navy-800 rounded-lg p-6">
+      <h2 class="text-xl font-semibold mb-4">Interactive Demo</h2>
+      <div class="space-y-4">
+        <button id="simulateUpload" class="px-4 py-2 bg-blue-accent text-white rounded-lg hover:bg-blue-accent-hover transition-colors">
+          Simulate File Upload
+        </button>
+        <button id="showError" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+          Show Error
+        </button>
+        <button id="showSuccess" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+          Show Success
+        </button>
+        <div id="demoArea" class="mt-4 min-h-[100px] bg-navy-900 rounded-lg p-4"></div>
+      </div>
+    </section>
+  </div>
+  
+  <script>
+    // Interactive demo
+    document.getElementById('simulateUpload').addEventListener('click', function() {
+      const demoArea = document.getElementById('demoArea');
+      demoArea.innerHTML = `
+        <div class="flex items-center justify-center gap-2">
+          <div class="animate-spin rounded-full h-4 w-4 border-2 border-blue-accent border-t-transparent"></div>
+          <span class="text-sm text-text-secondary">Uploading 2 files...</span>
+        </div>
+      `;
+      setTimeout(() => {
+        demoArea.innerHTML = `
+          <div class="flex items-center gap-2 text-green-400">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span>Upload completed!</span>
+          </div>
+        `;
+      }, 2000);
+    });
+    
+    document.getElementById('showError').addEventListener('click', function() {
+      const demoArea = document.getElementById('demoArea');
+      demoArea.innerHTML = `
+        <div class="bg-red-900/30 border border-red-800 rounded-lg px-4 py-3">
+          <div class="flex items-center gap-2">
+            <svg class="w-5 h-5 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p class="text-sm font-semibold text-red-300">Something went wrong!</p>
+          </div>
+        </div>
+      `;
+    });
+    
+    document.getElementById('showSuccess').addEventListener('click', function() {
+      const demoArea = document.getElementById('demoArea');
+      demoArea.innerHTML = `
+        <div class="flex items-center gap-2 text-green-400">
+          <span class="text-sm font-medium">Completed</span>
+          <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+        </div>
+      `;
+    });
+  </script>
+</body>
+</html>

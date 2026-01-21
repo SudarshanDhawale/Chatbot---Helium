@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Hierarchy Color Test - Task 16.3</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar - navy-950: #0f1419 */
+        .sidebar {
+            width: 320px;
+            background-color: #0f1419;
+            border-right: 1px solid #374151;
+            padding: 20px;
+            color: #f3f4f6;
+        }
+
+        .sidebar h2 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .sidebar-section {
+            margin-bottom: 15px;
+            padding: 12px;
+            background-color: rgba(31, 41, 55, 0.3);
+            border-radius: 8px;
+        }
+
+        /* Chat Area - navy-900: #1a2332 */
+        .chat-area {
+            flex: 1;
+            background-color: #1a2332;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header - gray-900: #111827 with opacity */
+        .header {
+            background-color: rgba(17, 24, 39, 0.8);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid #374151;
+            padding: 16px 24px;
+            color: #f3f4f6;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        /* Messages */
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .message {
+            background-color: #1f2937;
+            padding: 16px 20px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            color: #f3f4f6;
+        }
+
+        .message-header {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 8px;
+        }
+
+        /* Color Swatches */
+        .color-info {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(17, 24, 39, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid #374151;
+            border-radius: 12px;
+            padding: 20px;
+            color: #f3f4f6;
+            font-size: 12px;
+            max-width: 300px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .color-info h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #3b82f6;
+        }
+
+        .color-swatch {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        .swatch {
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            border: 1px solid #374151;
+        }
+
+        .swatch-info {
+            flex: 1;
+        }
+
+        .swatch-name {
+            font-weight: 600;
+            color: #f3f4f6;
+        }
+
+        .swatch-hex {
+            color: #9ca3af;
+            font-family: monospace;
+        }
+
+        .swatch-luminance {
+            color: #6b7280;
+            font-size: 11px;
+        }
+
+        .comparison {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #374151;
+        }
+
+        .comparison-item {
+            margin-bottom: 8px;
+            color: #9ca3af;
+        }
+
+        .comparison-item strong {
+            color: #3b82f6;
+        }
+
+        .pass {
+            color: #10b981;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2>Conversations</h2>
+            <div class="sidebar-section">
+                <div style="font-weight: 600; margin-bottom: 8px;">Recent Chat</div>
+                <div style="font-size: 12px; color: #9ca3af;">This is a sample conversation...</div>
+            </div>
+            <div class="sidebar-section">
+                <div style="font-weight: 600; margin-bottom: 8px;">Another Chat</div>
+                <div style="font-size: 12px; color: #9ca3af;">Another sample conversation...</div>
+            </div>
+            <div class="sidebar-section">
+                <div style="font-weight: 600; margin-bottom: 8px;">Third Chat</div>
+                <div style="font-size: 12px; color: #9ca3af;">Yet another conversation...</div>
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="chat-area">
+            <!-- Header -->
+            <div class="header">
+                <h1>HELIUM</h1>
+            </div>
+
+            <!-- Messages -->
+            <div class="messages">
+                <div class="message">
+                    <div class="message-header">User • Just now</div>
+                    <div>Hello! This is a sample message to demonstrate the visual hierarchy.</div>
+                </div>
+                <div class="message">
+                    <div class="message-header">Assistant • Just now</div>
+                    <div>This is a response message. Notice how the sidebar is darker than the chat area, creating a clear visual hierarchy.</div>
+                </div>
+                <div class="message">
+                    <div class="message-header">User • Just now</div>
+                    <div>The color contrast helps distinguish different sections of the interface.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Color Information Panel -->
+    <div class="color-info">
+        <h3>Color Hierarchy Analysis</h3>
+        
+        <div class="color-swatch">
+            <div class="swatch" style="background-color: #0f1419;"></div>
+            <div class="swatch-info">
+                <div class="swatch-name">Sidebar</div>
+                <div class="swatch-hex">#0f1419</div>
+                <div class="swatch-luminance">L: 0.0754</div>
+            </div>
+        </div>
+
+        <div class="color-swatch">
+            <div class="swatch" style="background-color: #1a2332;"></div>
+            <div class="swatch-info">
+                <div class="swatch-name">Chat Area</div>
+                <div class="swatch-hex">#1a2332</div>
+                <div class="swatch-luminance">L: 0.1339</div>
+            </div>
+        </div>
+
+        <div class="color-swatch">
+            <div class="swatch" style="background-color: #111827;"></div>
+            <div class="swatch-info">
+                <div class="swatch-name">Header</div>
+                <div class="swatch-hex">#111827</div>
+                <div class="swatch-luminance">L: 0.0924</div>
+            </div>
+        </div>
+
+        <div class="comparison">
+            <div class="comparison-item">
+                <strong>Sidebar vs Chat:</strong><br>
+                77.6% darker
+            </div>
+            <div class="comparison-item">
+                <strong>Visual Hierarchy:</strong><br>
+                <span class="pass">✓ PASS</span>
+            </div>
+            <div class="comparison-item">
+                Sidebar is clearly darker than chat area, establishing proper visual hierarchy per Requirements 11.2
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Horizontal Overflow Test</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'navy-950': '#0f1419',
+            'navy-900': '#1a2332',
+            'navy-800': '#1f2937',
+            'navy-700': '#374151',
+            'blue-accent': '#3b82f6',
+            'blue-accent-hover': '#2563eb',
+            'text-primary': '#f3f4f6',
+            'text-secondary': '#9ca3af',
+            'text-muted': '#6b7280',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    .test-viewport {
+      border: 2px solid #3b82f6;
+      margin: 20px auto;
+      background: #1a2332;
+      overflow-x: auto;
+    }
+    .overflow-indicator {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      padding: 10px;
+      background: #ef4444;
+      color: white;
+      border-radius: 8px;
+      display: none;
+      z-index: 1000;
+    }
+    .overflow-indicator.show {
+      display: block;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 p-4">
+  <div class="overflow-indicator" id="overflowIndicator">
+    ⚠️ Horizontal overflow detected!
+  </div>
+
+  <h1 class="text-white text-2xl mb-4 text-center">Horizontal Overflow Test - Chat UI</h1>
+  <p class="text-gray-400 text-center mb-6">Testing viewports: 320px, 375px, 414px</p>
+
+  <!-- 320px viewport test -->
+  <div class="test-viewport" style="width: 320px;">
+    <div class="p-2">
+      <h2 class="text-white text-sm mb-2">320px Viewport</h2>
+      
+      <!-- User message with long word -->
+      <div class="flex w-full mb-2 justify-end">
+        <div class="max-w-lg rounded-2xl px-5 py-4 backdrop-blur-md bg-blue-accent/20 text-text-primary">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-medium opacity-70">You</span>
+            <span class="text-xs opacity-70">2:30 PM</span>
+          </div>
+          <div class="break-words leading-relaxed">
+            This is a test message with a verylongwordthatdoesnotcontainanyspacesorbreakpointsandshouldtestwhetherwordbreakingworksproprly
+          </div>
+        </div>
+      </div>
+
+      <!-- Assistant message with long URL -->
+      <div class="flex w-full mb-2 justify-start">
+        <div class="max-w-lg rounded-2xl px-5 py-4 backdrop-blur-md bg-navy-800/60 text-text-primary">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-medium opacity-70">HELIUM</span>
+            <span class="text-xs opacity-70">2:31 PM</span>
+          </div>
+          <div class="break-words leading-relaxed">
+            Here's a long URL: https://www.example.com/very/long/path/that/should/wrap/properly/without/causing/horizontal/overflow
+          </div>
+        </div>
+      </div>
+
+      <!-- Message with code -->
+      <div class="flex w-full mb-2 justify-start">
+        <div class="max-w-lg rounded-2xl px-5 py-4 backdrop-blur-md bg-navy-800/60 text-text-primary">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-medium opacity-70">HELIUM</span>
+            <span class="text-xs opacity-70">2:32 PM</span>
+          </div>
+          <div class="break-words leading-relaxed">
+            <pre class="bg-gray-800 p-2 rounded overflow-x-auto"><code>const veryLongVariableName = "thisIsAVeryLongStringThatMightCauseOverflow";</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 375px viewport test -->
+  <div class="test-viewport" style="width: 375px;">
+    <div class="p-2">
+      <h2 class="text-white text-sm mb-2">375px Viewport</h2>
+      
+      <!-- User message with long word -->
+      <div class="flex w-full mb-2 justify-end">
+        <div class="max-w-lg rounded-2xl px-5 py-4 backdrop-blur-md bg-blue-accent/20 text-text-primary">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-medium opacity-70">You</span>
+            <span class="text-xs opacity-70">2:30 PM</span>
+          </div>
+          <div class="break-words leading-relaxed">
+            This is a test message with a verylongwordthatdoesnotcontainanyspacesorbreakpointsandshouldtestwhetherwordbreakingworksproprly
+          </div>
+        </div>
+      </div>
+
+      <!-- Assistant message with long URL -->
+      <div class="flex w-full mb-2 justify-start">
+        <div class="max-w-lg rounded-2xl px-5 py-4 backdrop-blur-md bg-navy-800/60 text-text-primary">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-medium opacity-70">HELIUM</span>
+            <span class="text-xs opacity-70">2:31 PM</span>
+          </div>
+          <div class="break-words leading-relaxed">
+            Here's a long URL: https://www.example.com/very/long/path/that/should/wrap/properly/without/causing/horizontal/overflow
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 414px viewport test -->
+  <div class="test-viewport" style="width: 414px;">
+    <div class="p-2">
+      <h2 class="text-white text-sm mb-2">414px Viewport</h2>
+      
+      <!-- User message with long word -->
+      <div class="flex w-full mb-2 justify-end">
+        <div class="max-w-lg rounded-2xl px-5 py-4 backdrop-blur-md bg-blue-accent/20 text-text-primary">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-medium opacity-70">You</span>
+            <span class="text-xs opacity-70">2:30 PM</span>
+          </div>
+          <div class="break-words leading-relaxed">
+            This is a test message with a verylongwordthatdoesnotcontainanyspacesorbreakpointsandshouldtestwhetherwordbreakingworksproprly
+          </div>
+        </div>
+      </div>
+
+      <!-- Assistant message with long URL -->
+      <div class="flex w-full mb-2 justify-start">
+        <div class="max-w-lg rounded-2xl px-5 py-4 backdrop-blur-md bg-navy-800/60 text-text-primary">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-medium opacity-70">HELIUM</span>
+            <span class="text-xs opacity-70">2:31 PM</span>
+          </div>
+          <div class="break-words leading-relaxed">
+            Here's a long URL: https://www.example.com/very/long/path/that/should/wrap/properly/without/causing/horizontal/overflow
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Check for horizontal overflow
+    function checkOverflow() {
+      const viewports = document.querySelectorAll('.test-viewport');
+      let hasOverflow = false;
+      
+      viewports.forEach(viewport => {
+        if (viewport.scrollWidth > viewport.clientWidth) {
+          hasOverflow = true;
+          viewport.style.borderColor = '#ef4444';
+        } else {
+          viewport.style.borderColor = '#10b981';
+        }
+      });
+      
+      const indicator = document.getElementById('overflowIndicator');
+      if (hasOverflow) {
+        indicator.classList.add('show');
+      } else {
+        indicator.classList.remove('show');
+      }
+    }
+    
+    // Check on load and resize
+    window.addEventListener('load', checkOverflow);
+    window.addEventListener('resize', checkOverflow);
+    
+    // Check periodically
+    setInterval(checkOverflow, 1000);
+  </script>
+</body>
+</html>

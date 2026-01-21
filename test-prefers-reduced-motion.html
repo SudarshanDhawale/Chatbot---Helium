@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prefers Reduced Motion Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #1a2332;
+      color: #f3f4f6;
+    }
+
+    h1 {
+      color: #3b82f6;
+      margin-bottom: 20px;
+    }
+
+    .test-section {
+      background: #1f2937;
+      border: 1px solid #374151;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .test-section h2 {
+      margin-top: 0;
+      color: #9ca3af;
+      font-size: 18px;
+    }
+
+    .status {
+      padding: 12px;
+      border-radius: 8px;
+      margin: 16px 0;
+      font-weight: bold;
+    }
+
+    .status.enabled {
+      background: #10b981;
+      color: white;
+    }
+
+    .status.disabled {
+      background: #ef4444;
+      color: white;
+    }
+
+    /* Animated box - should respect prefers-reduced-motion */
+    .animated-box {
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      border-radius: 12px;
+      margin: 20px 0;
+      animation: slide-fade 2s ease-in-out infinite;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .animated-box:hover {
+      transform: scale(1.1);
+    }
+
+    @keyframes slide-fade {
+      0%, 100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      50% {
+        opacity: 0.5;
+        transform: translateX(100px);
+      }
+    }
+
+    /* Respect prefers-reduced-motion */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    .button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.2s ease-in-out;
+      margin-right: 12px;
+    }
+
+    .button:hover {
+      background: #2563eb;
+    }
+
+    .instructions {
+      background: #374151;
+      padding: 16px;
+      border-radius: 8px;
+      margin: 16px 0;
+      line-height: 1.6;
+    }
+
+    .instructions code {
+      background: #1f2937;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      color: #3b82f6;
+    }
+
+    .instructions ol {
+      margin: 12px 0;
+      padding-left: 24px;
+    }
+
+    .instructions li {
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Prefers Reduced Motion Test</h1>
+
+  <div class="test-section">
+    <h2>Current Motion Preference Status</h2>
+    <div id="status" class="status">Checking...</div>
+    <p>This test detects whether your system has "Reduce Motion" enabled.</p>
+  </div>
+
+  <div class="test-section">
+    <h2>Visual Test: Animated Box</h2>
+    <p>This box should animate (slide and fade) continuously when motion is NOT reduced.</p>
+    <p>When "Reduce Motion" is enabled, the animation should be disabled or nearly instant.</p>
+    <div class="animated-box"></div>
+    <p><strong>Expected behavior:</strong></p>
+    <ul>
+      <li><strong>Motion enabled:</strong> Box slides back and forth smoothly</li>
+      <li><strong>Motion reduced:</strong> Box stays still or moves instantly</li>
+    </ul>
+  </div>
+
+  <div class="test-section">
+    <h2>Interactive Test: Hover Effect</h2>
+    <p>Hover over this button to test transition effects:</p>
+    <button class="button">Hover Over Me</button>
+    <p><strong>Expected behavior:</strong></p>
+    <ul>
+      <li><strong>Motion enabled:</strong> Smooth color transition on hover</li>
+      <li><strong>Motion reduced:</strong> Instant color change on hover</li>
+    </ul>
+  </div>
+
+  <div class="test-section">
+    <h2>How to Test</h2>
+    <div class="instructions">
+      <p><strong>To enable "Reduce Motion" on different systems:</strong></p>
+      
+      <p><strong>macOS:</strong></p>
+      <ol>
+        <li>Open System Settings (or System Preferences)</li>
+        <li>Go to Accessibility → Display</li>
+        <li>Enable "Reduce motion"</li>
+        <li>Refresh this page</li>
+      </ol>
+
+      <p><strong>Windows 10/11:</strong></p>
+      <ol>
+        <li>Open Settings</li>
+        <li>Go to Accessibility → Visual effects</li>
+        <li>Turn off "Animation effects"</li>
+        <li>Refresh this page</li>
+      </ol>
+
+      <p><strong>Linux (GNOME):</strong></p>
+      <ol>
+        <li>Open Settings</li>
+        <li>Go to Accessibility → Seeing</li>
+        <li>Enable "Reduce animation"</li>
+        <li>Refresh this page</li>
+      </ol>
+
+      <p><strong>Browser DevTools (for testing):</strong></p>
+      <ol>
+        <li>Open Chrome/Edge DevTools (F12)</li>
+        <li>Press <code>Ctrl+Shift+P</code> (or <code>Cmd+Shift+P</code> on Mac)</li>
+        <li>Type "Emulate CSS prefers-reduced-motion"</li>
+        <li>Select "Emulate CSS prefers-reduced-motion: reduce"</li>
+        <li>The page will update automatically</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test Results</h2>
+    <div id="results">
+      <p>Toggle the "Reduce Motion" setting and observe the changes:</p>
+      <ul id="result-list">
+        <li>Status indicator should update automatically</li>
+        <li>Animated box should stop animating when motion is reduced</li>
+        <li>Button hover effect should become instant when motion is reduced</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    // Function to check and display the prefers-reduced-motion status
+    function checkMotionPreference() {
+      const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const statusDiv = document.getElementById('status');
+      
+      if (mediaQuery.matches) {
+        statusDiv.textContent = '✓ Reduced Motion is ENABLED';
+        statusDiv.className = 'status enabled';
+      } else {
+        statusDiv.textContent = '✗ Reduced Motion is DISABLED (animations active)';
+        statusDiv.className = 'status disabled';
+      }
+    }
+
+    // Check on page load
+    checkMotionPreference();
+
+    // Listen for changes to the media query
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    mediaQuery.addEventListener('change', (e) => {
+      checkMotionPreference();
+      
+      // Add a notification when the preference changes
+      const resultList = document.getElementById('result-list');
+      const li = document.createElement('li');
+      li.textContent = `Motion preference changed at ${new Date().toLocaleTimeString()}: ${e.matches ? 'REDUCED' : 'NORMAL'}`;
+      li.style.color = '#3b82f6';
+      li.style.fontWeight = 'bold';
+      resultList.appendChild(li);
+    });
+
+    // Log to console for debugging
+    console.log('Prefers Reduced Motion:', mediaQuery.matches);
+  </script>
+</body>
+</html>
