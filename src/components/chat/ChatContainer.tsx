@@ -139,10 +139,10 @@ export function ChatContainer({
       {!hasMessages && (
         <div className="absolute inset-0 flex flex-col items-center pointer-events-none" style={{ paddingBottom: '500px' }}>
           <div className="text-center px-4 mt-auto mb-auto">
-            <h2 className="text-2xl font-bold mb-2 text-gray-900">
+            <h2 className="text-4xl font-bold mb-2 text-gray-900">
               Welcome{userName ? `, ${userName}` : ''}
             </h2>
-            <div className="text-base font-normal text-gray-600">
+            <div className="text-lg font-normal text-gray-600 mt-5">
               <TextType
                 text={[
                   "Start a conversation by describing what you'd like to build",
