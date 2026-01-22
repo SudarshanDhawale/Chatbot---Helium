@@ -48,11 +48,10 @@ CREATE TABLE messages (
 CREATE TABLE files (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     message_id UUID NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
-    file_id VARCHAR(255), -- Helium file ID
+    file_id VARCHAR(255), -- Helium file ID (for both uploaded and generated files)
     file_name VARCHAR(255) NOT NULL,
     file_size BIGINT,
     file_type VARCHAR(100),
-    file_url TEXT,
     is_uploaded BOOLEAN DEFAULT false, -- true if user uploaded, false if AI generated
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

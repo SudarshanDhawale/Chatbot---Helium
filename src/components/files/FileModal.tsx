@@ -271,18 +271,18 @@ export function FileModal({ isOpen, onClose, threadId, projectId }: FileModalPro
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-md"
       onClick={onClose}
     >
       <div
-        className="bg-gray-900 rounded-2xl border border-gray-700 w-full max-w-2xl max-h-[80vh] flex flex-col"
+        className="bg-white rounded-2xl border border-gray-200 shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
           <div className="flex items-center gap-3">
             <svg
-              className="w-6 h-6 text-gray-300"
+              className="w-6 h-6 text-gray-700"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -294,11 +294,11 @@ export function FileModal({ isOpen, onClose, threadId, projectId }: FileModalPro
                 d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
               />
             </svg>
-            <h2 className="text-xl font-semibold text-gray-100">Thread Files</h2>
+            <h2 className="text-xl font-semibold text-gray-900">Thread Files</h2>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded-lg transition-all duration-200 ease-in-out"
+            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200 ease-in-out"
             aria-label="Close"
           >
             <svg
@@ -321,11 +321,11 @@ export function FileModal({ isOpen, onClose, threadId, projectId }: FileModalPro
         <div className="flex-1 overflow-y-auto p-6">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="w-8 h-8 border-4 border-gray-600 border-t-blue-400 rounded-full animate-spin" />
+              <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-red-400 mb-4">{error}</p>
+              <p className="text-red-600 mb-4">{error}</p>
               <button
                 onClick={fetchFiles}
                 className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all duration-200 ease-in-out"
@@ -336,7 +336,7 @@ export function FileModal({ isOpen, onClose, threadId, projectId }: FileModalPro
           ) : files.length === 0 ? (
             <div className="text-center py-12">
               <svg
-                className="w-16 h-16 text-gray-600 mx-auto mb-4"
+                className="w-16 h-16 text-gray-400 mx-auto mb-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -348,7 +348,7 @@ export function FileModal({ isOpen, onClose, threadId, projectId }: FileModalPro
                   d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
                 />
               </svg>
-              <p className="text-gray-400">No files generated in this thread yet</p>
+              <p className="text-gray-600">No files generated in this conversation yet</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -359,12 +359,12 @@ export function FileModal({ isOpen, onClose, threadId, projectId }: FileModalPro
                     key={file.file_id}
                     onClick={() => handleFileClick(file)}
                     disabled={isDownloading || !threadId || !projectId}
-                    className="w-full flex items-center justify-between bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-3 text-left hover:bg-gray-800/70 hover:border-gray-600 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed group"
+                    className="w-full flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-left hover:bg-gray-100 hover:border-gray-300 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed group"
                   >
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       {isDownloading ? (
                         <svg
-                          className="w-5 h-5 animate-spin text-blue-400 flex-shrink-0"
+                          className="w-5 h-5 animate-spin text-blue-500 flex-shrink-0"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -382,10 +382,10 @@ export function FileModal({ isOpen, onClose, threadId, projectId }: FileModalPro
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-100 truncate">
+                        <p className="text-sm font-medium text-gray-900 truncate">
                           {file.file_name}
                         </p>
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-xs text-gray-600 mt-1">
                           {formatFileSize(file.file_size)}
                           {file.file_type && ` • ${file.file_type}`}
                         </p>
@@ -393,7 +393,7 @@ export function FileModal({ isOpen, onClose, threadId, projectId }: FileModalPro
                     </div>
                     {!isDownloading && (
                       <svg
-                        className="w-5 h-5 text-gray-400 group-hover:text-gray-300 transition-colors duration-150 ease-in-out flex-shrink-0 ml-2"
+                        className="w-5 h-5 text-gray-600 group-hover:text-gray-900 transition-colors duration-150 ease-in-out flex-shrink-0 ml-2"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"

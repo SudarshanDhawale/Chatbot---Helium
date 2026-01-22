@@ -174,6 +174,14 @@ export class DatabaseService {
     threadId: string,
     message: ChatMessage
   ): Promise<Message> {
+    console.log('DatabaseService.saveMessage called:', {
+      threadId,
+      messageId: message.id,
+      role: message.role,
+      contentLength: message.content?.length,
+      status: message.status,
+    });
+    
     const client = await getClient();
     
     try {
@@ -186,10 +194,12 @@ export class DatabaseService {
       );
       
       if (threadResult.rows.length === 0) {
+        console.error('Thread not found in database:', threadId);
         throw new Error(`Thread not found: ${threadId}`);
       }
       
       const threadUuid = threadResult.rows[0].id;
+      console.log('Found thread UUID:', threadUuid);
 
       // Insert message
       const messageResult = await client.query(
@@ -208,9 +218,11 @@ export class DatabaseService {
 
       const savedMessage = messageResult.rows[0];
       const messageUuid = savedMessage.id;
+      console.log('Message inserted with UUID:', messageUuid);
 
       // Save files if any
       if (message.files && message.files.length > 0) {
+        console.log('Saving', message.files.length, 'files');
         for (const file of message.files) {
           await client.query(
             `INSERT INTO files (message_id, file_id, file_name, file_size, is_uploaded)
@@ -223,10 +235,12 @@ export class DatabaseService {
       // Save uploaded files if any
       if (message.uploadedFiles && message.uploadedFiles.length > 0) {
         for (const file of message.uploadedFiles) {
+          // For uploaded files, we store the file_id if available (from Helium)
+          // Otherwise, we just store metadata without a permanent URL
           await client.query(
-            `INSERT INTO files (message_id, file_name, file_size, file_type, file_url, is_uploaded)
+            `INSERT INTO files (message_id, file_id, file_name, file_size, file_type, is_uploaded)
              VALUES ($1, $2, $3, $4, $5, $6)`,
-            [messageUuid, file.name, file.size, file.type, file.url, true]
+            [messageUuid, file.file_id || null, file.name, file.size, file.type, true]
           );
         }
       }
@@ -264,9 +278,11 @@ export class DatabaseService {
       );
 
       await client.query('COMMIT');
+      console.log('✓ Message saved successfully to database');
       return savedMessage;
     } catch (error) {
       await client.query('ROLLBACK');
+      console.error('❌ Error in saveMessage, rolling back:', error);
       throw error;
     } finally {
       client.release();
@@ -277,6 +293,8 @@ export class DatabaseService {
    * Get messages for a thread
    */
   static async getThreadMessages(threadId: string): Promise<ChatMessage[]> {
+    console.log('DatabaseService.getThreadMessages called for threadId:', threadId);
+    
     const result = await query(
       `SELECT 
         m.*,
@@ -286,10 +304,10 @@ export class DatabaseService {
           'file_size', f.file_size
         )) FILTER (WHERE f.id IS NOT NULL AND f.is_uploaded = false) as files,
         json_agg(DISTINCT jsonb_build_object(
+          'file_id', uf.file_id,
           'name', uf.file_name,
           'type', uf.file_type,
-          'size', uf.file_size,
-          'url', uf.file_url
+          'size', uf.file_size
         )) FILTER (WHERE uf.id IS NOT NULL AND uf.is_uploaded = true) as uploaded_files,
         json_agg(DISTINCT jsonb_build_object(
           'language', cb.language,
@@ -302,8 +320,8 @@ export class DatabaseService {
         )) FILTER (WHERE te.id IS NOT NULL) as tool_executions
        FROM messages m
        LEFT JOIN threads t ON m.thread_id = t.id
-       LEFT JOIN files f ON m.id = f.message_id
-       LEFT JOIN files uf ON m.id = uf.message_id
+       LEFT JOIN files f ON m.id = f.message_id AND f.is_uploaded = false
+       LEFT JOIN files uf ON m.id = uf.message_id AND uf.is_uploaded = true
        LEFT JOIN code_blocks cb ON m.id = cb.message_id
        LEFT JOIN tool_executions te ON m.id = te.message_id
        WHERE t.thread_id = $1
@@ -312,18 +330,30 @@ export class DatabaseService {
       [threadId]
     );
 
-    return result.rows.map((row) => ({
-      id: row.message_id || row.id,
-      role: row.role,
-      content: row.content,
-      status: row.status,
-      error: row.error_message,
-      timestamp: new Date(row.created_at),
-      files: row.files && row.files[0] ? row.files : undefined,
-      uploadedFiles: row.uploaded_files && row.uploaded_files[0] ? row.uploaded_files : undefined,
-      codeBlocks: row.code_blocks && row.code_blocks[0] ? row.code_blocks : undefined,
-      toolExecutions: row.tool_executions && row.tool_executions[0] ? row.tool_executions : undefined,
-    }));
+    console.log('getThreadMessages SQL result:', {
+      rowCount: result.rows.length,
+      roles: result.rows.map(r => r.role),
+    });
+    
+    return result.rows.map((row) => {
+      console.log('Mapping message:', row.message_id, row.role, row.content?.substring(0, 50));
+      console.log('Row created_at:', row.created_at, typeof row.created_at);
+      const timestamp = new Date(row.created_at);
+      console.log('Parsed timestamp:', timestamp, timestamp.getTime(), isNaN(timestamp.getTime()));
+      
+      return {
+        id: row.message_id || row.id,
+        role: row.role,
+        content: row.content,
+        status: row.status,
+        error: row.error_message,
+        timestamp: timestamp,
+        files: row.files && row.files[0] ? row.files : undefined,
+        uploadedFiles: row.uploaded_files && row.uploaded_files[0] ? row.uploaded_files : undefined,
+        codeBlocks: row.code_blocks && row.code_blocks[0] ? row.code_blocks : undefined,
+        toolExecutions: row.tool_executions && row.tool_executions[0] ? row.tool_executions : undefined,
+      };
+    });
   }
 
   /**

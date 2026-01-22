@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
+  --background: #b7b7b7;
   --foreground: #171717;
   
   /* Dark theme color palette */

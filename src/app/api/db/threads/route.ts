@@ -59,3 +59,28 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// Delete a thread
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const threadId = searchParams.get('thread_id');
+
+    if (!threadId) {
+      return NextResponse.json(
+        { error: 'thread_id is required' },
+        { status: 400 }
+      );
+    }
+
+    await DatabaseService.deleteThread(threadId);
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting thread:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to delete thread' },
+      { status: 500 }
+    );
+  }
+}

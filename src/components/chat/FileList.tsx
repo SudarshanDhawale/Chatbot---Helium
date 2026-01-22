@@ -13,41 +13,90 @@ import { ImagePreviewModal } from './ImagePreviewModal';
 function getFileIcon(fileName: string) {
   const ext = fileName.split('.').pop()?.toLowerCase() || '';
   
+  // PDF files
   if (['pdf'].includes(ext)) {
     return (
-      <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 24 24">
+      <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
         <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
       </svg>
     );
   }
   
+  // Image files
   if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp'].includes(ext)) {
     return (
-      <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M9,2V8H15V2H9M11,4H13V6H11V4M2,12V20A2,2 0 0,0 4,22H20A2,2 0 0,0 22,20V12H2M20,20H4V14H20V20Z" />
+      <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M8.5,13.5L11,16.5L14.5,12L19,18H5M21,19V5C21,3.89 20.1,3 19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19Z" />
       </svg>
     );
   }
   
+  // Word documents
+  if (['doc', 'docx'].includes(ext)) {
+    return (
+      <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M15,18V16H13V18H15M15,14V12H13V14H15M11,18V16H9V18H11M11,14V12H9V14H11Z" />
+      </svg>
+    );
+  }
+  
+  // Excel spreadsheets
+  if (['xls', 'xlsx', 'csv'].includes(ext)) {
+    return (
+      <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,19L15,15H13V11H11V15H9L12,19Z" />
+      </svg>
+    );
+  }
+  
+  // PowerPoint presentations
+  if (['ppt', 'pptx'].includes(ext)) {
+    return (
+      <svg className="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M10,11H13A2,2 0 0,1 15,13V15A2,2 0 0,1 13,17H10V11M11,12V16H13A1,1 0 0,0 14,15V13A1,1 0 0,0 13,12H11Z" />
+      </svg>
+    );
+  }
+  
+  // Text files
+  if (['txt', 'text'].includes(ext)) {
+    return (
+      <svg className="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M10,19H8V17H10V19M14,19H10V17H14V19M18,19H14V17H18V19M10,15H8V13H10V15M14,15H10V13H14V15M18,15H14V13H18V15Z" />
+      </svg>
+    );
+  }
+  
+  // Markdown files
   if (['md', 'markdown'].includes(ext)) {
     return (
-      <svg className="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+      <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
         <path d="M14,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V9L14,3M19,19H5V5H13V10H19V19Z" />
       </svg>
     );
   }
   
-  if (['html', 'htm'].includes(ext)) {
+  // Code files
+  if (['js', 'jsx', 'ts', 'tsx', 'py', 'java', 'cpp', 'c', 'html', 'css', 'json', 'xml'].includes(ext)) {
     return (
-      <svg className="w-5 h-5 text-orange-400" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M12,18L16,14H13V10H11V14H8M19,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3Z" />
+      <svg className="w-5 h-5 text-purple-500" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M9.5,16.5L11,15L9.5,13.5L8,15L9.5,16.5M12,15L13.5,13.5L15,15L16.5,13.5L15,12L16.5,10.5L15,9L13.5,10.5L12,9L10.5,10.5L12,12L10.5,13.5L12,15Z" />
+      </svg>
+    );
+  }
+  
+  // Archive files
+  if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) {
+    return (
+      <svg className="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,19L15,16H13V12H11V16H9L12,19Z" />
       </svg>
     );
   }
   
   // Default file icon
   return (
-    <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
     </svg>
   );
@@ -78,6 +127,24 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
   const isImageFile = (fileName: string): boolean => {
     const ext = fileName.split('.').pop()?.toLowerCase() || '';
     return ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp'].includes(ext);
+  };
+
+  // Check if file is a video
+  const isVideoFile = (fileName: string): boolean => {
+    const ext = fileName.split('.').pop()?.toLowerCase() || '';
+    return ['mp4', 'webm', 'ogg', 'mov', 'avi'].includes(ext);
+  };
+
+  // Check if file is audio
+  const isAudioFile = (fileName: string): boolean => {
+    const ext = fileName.split('.').pop()?.toLowerCase() || '';
+    return ['mp3', 'wav', 'ogg', 'aac', 'm4a'].includes(ext);
+  };
+
+  // Check if file is a PDF
+  const isPDFFile = (fileName: string): boolean => {
+    const ext = fileName.split('.').pop()?.toLowerCase() || '';
+    return ext === 'pdf';
   };
 
   const handleFileClick = async (file: { file_id: string; file_name: string }) => {
@@ -224,56 +291,130 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
 
   return (
     <>
-      <div className="space-y-2">
-      <div className="text-xs font-semibold text-gray-400 mb-2 flex items-center gap-2">
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-          />
-        </svg>
-        Related Files:
-      </div>
-      {files.map((file) => {
-        const isDownloading = downloading.has(file.file_id);
-        return (
-          <button
-            key={file.file_id}
-            onClick={() => handleFileClick(file)}
-            disabled={isDownloading || !threadId || !projectId}
-            className="w-full flex items-center justify-between bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-3 text-sm text-gray-200 hover:bg-gray-800/70 hover:border-gray-600 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed group"
-          >
-            <div className="flex items-center gap-3 min-w-0 flex-1">
-              {isDownloading ? (
-                <svg
-                  className="w-5 h-5 animate-spin text-blue-400 flex-shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
-                </svg>
-              ) : (
-                <span className="flex-shrink-0">{getFileIcon(file.file_name)}</span>
+      <div className="w-full space-y-3">
+        {/* Separate images and other files */}
+        {(() => {
+          const imageFiles = files.filter(file => isImageFile(file.file_name));
+          const otherFiles = files.filter(file => !isImageFile(file.file_name));
+
+          return (
+            <>
+              {/* Display images inline */}
+              {imageFiles.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {imageFiles.map((file) => {
+                    const fileUrl = threadId && projectId
+                      ? `/api/files/${encodeURIComponent(file.file_id)}?thread_id=${threadId}&project_id=${projectId}`
+                      : null;
+
+                    return (
+                      <div
+                        key={file.file_id}
+                        className="relative inline-block rounded-lg overflow-hidden border border-gray-300 max-w-full cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() => {
+                          if (fileUrl) {
+                            fetch(fileUrl)
+                              .then(res => res.blob())
+                              .then(blob => {
+                                const imageUrl = window.URL.createObjectURL(blob);
+                                setPreviewImage({
+                                  url: imageUrl,
+                                  fileName: file.file_name,
+                                  fileId: file.file_id,
+                                });
+                              })
+                              .catch(error => {
+                                console.error('Error loading image:', error);
+                                alert(`Failed to load image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                              });
+                          }
+                        }}
+                      >
+                        {fileUrl ? (
+                          <img
+                            src={fileUrl}
+                            alt={file.file_name}
+                            className="max-w-full max-h-[300px] object-contain"
+                            style={{ maxWidth: '100%' }}
+                            onError={(e) => {
+                              console.log('Image failed to load:', fileUrl, file.file_name);
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <div className="flex items-center gap-2 bg-gray-100 px-3 py-2">
+                            {getFileIcon(file.file_name)}
+                            <span className="text-xs font-medium text-gray-900 truncate max-w-[150px]">
+                              {file.file_name}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               )}
-              <span className="font-mono font-medium text-gray-100 group-hover:text-white transition-colors duration-150 ease-in-out truncate">{file.file_name}</span>
-            </div>
-            <span className="text-xs font-normal text-gray-400 flex-shrink-0 ml-2">{formatFileSize(file.file_size)}</span>
-          </button>
-        );
-      })}
+
+              {/* Display other files as download buttons */}
+              {otherFiles.length > 0 && (
+                <>
+                  <div className="text-xs font-semibold text-gray-600 mb-2 flex items-center gap-2">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                      />
+                    </svg>
+                    Related Files:
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    {otherFiles.map((file) => {
+                      const isDownloading = downloading.has(file.file_id);
+                      return (
+                        <button
+                          key={file.file_id}
+                          onClick={() => handleFileClick(file)}
+                          disabled={isDownloading || !threadId || !projectId}
+                          className="flex flex-col items-start bg-white border border-gray-200 rounded-lg px-3 py-3 text-sm text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed group shadow-[0_2px_4px_rgba(156,163,175,0.1)]"
+                        >
+                          <div className="flex items-center gap-2 w-full mb-1">
+                            {isDownloading ? (
+                              <svg
+                                className="w-5 h-5 animate-spin text-blue-500 flex-shrink-0"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                />
+                              </svg>
+                            ) : (
+                              <span className="flex-shrink-0">{getFileIcon(file.file_name)}</span>
+                            )}
+                            <span className="text-xs font-normal text-gray-500 flex-shrink-0">{formatFileSize(file.file_size)}</span>
+                          </div>
+                          <span className="font-medium text-gray-900 group-hover:text-gray-950 transition-colors duration-150 ease-in-out truncate w-full text-left text-xs">{file.file_name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </>
+          );
+        })()}
       </div>
 
       {/* Image Preview Modal */}

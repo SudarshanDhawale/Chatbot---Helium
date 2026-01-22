@@ -13,6 +13,11 @@ export function formatFileSize(bytes: number): string {
 }
 
 export function formatTimestamp(date: Date): string {
+  // Handle invalid dates
+  if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+    return '--:--';
+  }
+  
   return new Intl.DateTimeFormat('en-US', {
     hour: '2-digit',
     minute: '2-digit',

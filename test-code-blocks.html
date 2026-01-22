@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Block Visual Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+            margin: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        .test-section {
+            margin-bottom: 3rem;
+        }
+        .test-section h2 {
+            color: #555;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+        .test-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+        .message {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .code-block {
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #1e293b;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(8px);
+            margin: 1rem 0;
+        }
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: rgba(15, 23, 42, 0.6);
+            border-bottom: 1px solid #1e293b;
+        }
+        .code-language {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #94a3b8;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .copy-button {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #94a3b8;
+            background: transparent;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .copy-button:hover {
+            color: #e2e8f0;
+            background: #1e293b;
+        }
+        .copy-button.copied {
+            color: #4ade80;
+        }
+        .code-content {
+            max-height: 500px;
+            overflow-x: auto;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0.2);
+        }
+        .code-content::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .code-content::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .code-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+        .code-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+        pre {
+            margin: 0;
+            padding: 1rem;
+            background: transparent;
+            font-size: 0.875rem;
+            line-height: 1.625;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            color: #d4d4d4;
+            white-space: pre;
+            tab-size: 4;
+        }
+        code {
+            tab-size: 4;
+        }
+        .empty-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+            min-height: 4rem;
+            color: #94a3b8;
+            font-style: italic;
+        }
+        .checklist {
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 4px;
+        }
+        .checklist h3 {
+            margin: 0 0 0.5rem 0;
+            color: #1e40af;
+            font-size: 1rem;
+        }
+        .checklist ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+        .checklist li {
+            margin: 0.25rem 0;
+            color: #1e40af;
+        }
+        /* Syntax highlighting colors (VS Code Dark+ theme) */
+        .keyword { color: #569cd6; }
+        .string { color: #ce9178; }
+        .comment { color: #6a9955; font-style: italic; }
+        .function { color: #dcdcaa; }
+        .number { color: #b5cea8; }
+        .operator { color: #d4d4d4; }
+        .tag { color: #569cd6; }
+        .attr { color: #9cdcfe; }
+        .value { color: #ce9178; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Code Block Visual Testing Suite</h1>
+        <p style="color: #666; margin-bottom: 2rem;">
+            This page demonstrates all the code block features for manual visual verification.
+        </p>
+
+        <!-- Test 1: Basic Python -->
+        <div class="test-section">
+            <h2>Test 1: Basic Python Code Block</h2>
+            <p class="test-description">Tests basic rendering, syntax highlighting, and dark theme</p>
+            <div class="message">
+                <div class="code-block">
+                    <div class="code-header">
+                        <div class="code-language">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                            </svg>
+                            Python
+                        </div>
+                        <button class="copy-button" onclick="copyCode(this, 'def hello():\n    print(\"Hello, World!\")')">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                            Copy
+                        </button>
+                    </div>
+                    <div class="code-content">
+                        <pre><code><span class="keyword">def</span> <span class="function">hello</span>():
+    <span class="function">print</span>(<span class="string">"Hello, World!"</span>)</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="checklist">
+                <h3>✓ Verify:</h3>
+                <ul>
+                    <li>Dark background with good contrast</li>
+                    <li>"Python" label visible in header</li>
+                    <li>Monospace font used</li>
+                    <li>Syntax highlighting (keywords in blue, strings in orange)</li>
+                    <li>Copy button visible and functional</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Test 2: Horizontal Scroll -->
+        <div class="test-section">
+            <h2>Test 2: Horizontal Scrolling</h2>
+            <p class="test-description">Tests horizontal scroll with very long lines</p>
+            <div class="message">
+                <div class="code-block">
+                    <div class="code-header">
+                        <div class="code-language">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                            </svg>
+                            JavaScript
+                        </div>
+                        <button class="copy-button" onclick="copyCode(this, 'const veryLongFunctionName = (param1, param2, param3, param4, param5, param6, param7, param8) => { return \"This is a very long string that should definitely exceed the container width and trigger horizontal scrolling\"; };')">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                            Copy
+                        </button>
+                    </div>
+                    <div class="code-content">
+                        <pre><code><span class="keyword">const</span> veryLongFunctionName = (param1, param2, param3, param4, param5, param6, param7, param8) <span class="operator">=></span> { <span class="keyword">return</span> <span class="string">"This is a very long string that should definitely exceed the container width and trigger horizontal scrolling behavior in the code block component"</span>; };</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="checklist">
+                <h3>✓ Verify:</h3>
+                <ul>
+                    <li>Horizontal scrollbar appears</li>
+                    <li>Can scroll to see full line</li>
+                    <li>No text wrapping</li>
+                    <li>Header stays fixed while scrolling</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Test 3: Vertical Scroll -->
+        <div class="test-section">
+            <h2>Test 3: Vertical Scrolling</h2>
+            <p class="test-description">Tests vertical scroll with many lines</p>
+            <div class="message">
+                <div class="code-block">
+                    <div class="code-header">
+                        <div class="code-language">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                            </svg>
+                            Python
+                        </div>
+                        <button class="copy-button" onclick="copyCode(this, 'def function1():\n    pass\n\ndef function2():\n    pass\n\ndef function3():\n    pass\n\ndef function4():\n    pass\n\ndef function5():\n    pass\n\ndef function6():\n    pass\n\ndef function7():\n    pass\n\ndef function8():\n    pass\n\ndef function9():\n    pass\n\ndef function10():\n    pass')">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                            Copy
+                        </button>
+                    </div>
+                    <div class="code-content">
+                        <pre><code><span class="keyword">def</span> <span class="function">function1</span>():
+    <span class="keyword">pass</span>
+
+<span class="keyword">def</span> <span class="function">function2</span>():
+    <span class="keyword">pass</span>
+
+<span class="keyword">def</span> <span class="function">function3</span>():
+    <span class="keyword">pass</span>
+
+<span class="keyword">def</span> <span class="function">function4</span>():
+    <span class="keyword">pass</span>
+
+<span class="keyword">def</span> <span class="function">function5</span>():
+    <span class="keyword">pass</span>
+
+<span class="keyword">def</span> <span class="function">function6</span>():
+    <span class="keyword">pass</span>
+
+<span class="keyword">def</span> <span class="function">function7</span>():
+    <span class="keyword">pass</span>
+
+<span class="keyword">def</span> <span class="function">function8</span>():
+    <span class="keyword">pass</span>
+
+<span class="keyword">def</span> <span class="function">function9</span>():
+    <span class="keyword">pass</span>
+
+<span class="keyword">def</span> <span class="function">function10</span>():
+    <span class="keyword">pass</span>
+
+<span class="keyword">def</span> <span class="function">function11</span>():
+    <span class="keyword">pass</span>
+
+<span class="keyword">def</span> <span class="function">function12</span>():
+    <span class="keyword">pass</span></code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="checklist">
+                <h3>✓ Verify:</h3>
+                <ul>
+                    <li>Vertical scrollbar appears (max-height: 500px)</li>
+                    <li>Can scroll to see all functions</li>
+                    <li>Indentation preserved</li>
+                    <li>Scrollbar styled for dark theme</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Test 4: Multiple Languages -->
+        <div class="test-section">
+            <h2>Test 4: Multiple Languages</h2>
+            <p class="test-description">Tests different programming languages</p>
+            <div class="message">
+                <!-- HTML -->
+                <div class="code-block">
+                    <div class="code-header">
+                        <div class="code-language">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                            </svg>
+                            HTML
+                        </div>
+                        <button class="copy-button" onclick="copyCode(this, '<div class=\"container\">\n  <h1>Title</h1>\n</div>')">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                            Copy
+                        </button>
+                    </div>
+                    <div class="code-content">
+                        <pre><code><span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="value">"container"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;h1&gt;</span>Title<span class="tag">&lt;/h1&gt;</span>
+<span class="tag">&lt;/div&gt;</span></code></pre>
+                    </div>
+                </div>
+
+                <!-- JSON -->
+                <div class="code-block" style="margin-top: 1rem;">
+                    <div class="code-header">
+                        <div class="code-language">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                            </svg>
+                            JSON
+                        </div>
+                        <button class="copy-button" onclick="copyCode(this, '{\n  \"name\": \"test\",\n  \"value\": 123\n}')">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                            Copy
+                        </button>
+                    </div>
+                    <div class="code-content">
+                        <pre><code>{
+  <span class="string">"name"</span>: <span class="string">"test"</span>,
+  <span class="string">"value"</span>: <span class="number">123</span>
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="checklist">
+                <h3>✓ Verify:</h3>
+                <ul>
+                    <li>Each language shows correct label</li>
+                    <li>Syntax highlighting appropriate for each</li>
+                    <li>No errors or crashes</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Test 5: Empty Code Block -->
+        <div class="test-section">
+            <h2>Test 5: Empty Code Block</h2>
+            <p class="test-description">Tests handling of empty code blocks</p>
+            <div class="message">
+                <div class="code-block">
+                    <div class="code-header">
+                        <div class="code-language">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                            </svg>
+                            Python
+                        </div>
+                        <button class="copy-button" onclick="copyCode(this, '')">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                            Copy
+                        </button>
+                    </div>
+                    <div class="code-content">
+                        <div class="empty-placeholder">
+                            Empty code block
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="checklist">
+                <h3>✓ Verify:</h3>
+                <ul>
+                    <li>Header displays correctly</li>
+                    <li>Placeholder text visible</li>
+                    <li>No errors</li>
+                    <li>Consistent styling</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Test 6: Special Characters -->
+        <div class="test-section">
+            <h2>Test 6: Special Characters & Unicode</h2>
+            <p class="test-description">Tests handling of special characters and emojis</p>
+            <div class="message">
+                <div class="code-block">
+                    <div class="code-header">
+                        <div class="code-language">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                            </svg>
+                            Python
+                        </div>
+                        <button class="copy-button" onclick="copyCode(this, '# Unicode: 🚀 💻 ✨\ntext = \"Special chars: <>&\\'\\\"\"')">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                            Copy
+                        </button>
+                    </div>
+                    <div class="code-content">
+                        <pre><code><span class="comment"># Unicode: 🚀 💻 ✨</span>
+text = <span class="string">"Special chars: &lt;&gt;&amp;'\""</span>
+emoji = <span class="string">"😀"</span></code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="checklist">
+                <h3>✓ Verify:</h3>
+                <ul>
+                    <li>Emojis render correctly</li>
+                    <li>Special HTML chars display properly</li>
+                    <li>No encoding issues</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function copyCode(button, code) {
+            navigator.clipboard.writeText(code).then(() => {
+                const originalHTML = button.innerHTML;
+                button.classList.add('copied');
+                button.innerHTML = `
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Copied
+                `;
+                setTimeout(() => {
+                    button.classList.remove('copied');
+                    button.innerHTML = originalHTML;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        }
+    </script>
+</body>
+</html>

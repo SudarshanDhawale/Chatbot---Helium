@@ -22,7 +22,7 @@ const config: Config = {
         'blue-accent-hover': '#4b5563',  // Darker gray for hover
         
         // Text colors
-        'text-primary': '#ececec',  // Primary text (light gray)
+        'text-primary': '#000000ff',  // Primary text (light gray)
         'text-secondary': '#c5c5c5',  // Secondary text (medium gray)
         'text-muted': '#8e8e8e',  // Muted text (darker gray)
       },

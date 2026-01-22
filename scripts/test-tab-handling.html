@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tab Character Handling Test</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0a0e1a;
+      color: #fff;
+      padding: 2rem;
+      margin: 0;
+    }
+    h1 {
+      margin-bottom: 2rem;
+    }
+    h2 {
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      font-size: 1.25rem;
+    }
+    .test-section {
+      margin-bottom: 2rem;
+    }
+    .code-block {
+      background: #1a1f2e;
+      border: 1px solid #2a3f5f;
+      border-radius: 0.5rem;
+      overflow: hidden;
+    }
+    .code-header {
+      background: #151a28;
+      border-bottom: 1px solid #2a3f5f;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      color: #8b92a7;
+    }
+    .code-content {
+      padding: 1rem;
+      overflow-x: auto;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    pre {
+      margin: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.875rem;
+      line-height: 1.625;
+      white-space: pre;
+      tab-size: 4;
+      -moz-tab-size: 4;
+    }
+    code {
+      tab-size: 4;
+      -moz-tab-size: 4;
+    }
+    .info-box {
+      background: #1a1f2e;
+      border: 1px solid #2a3f5f;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    .info-box p {
+      margin: 0.5rem 0;
+    }
+    .visual-guide {
+      background: #0f1419;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-top: 1rem;
+      font-family: monospace;
+      font-size: 0.875rem;
+    }
+    .ruler {
+      color: #4a5568;
+      border-bottom: 1px solid #2a3f5f;
+      padding-bottom: 0.25rem;
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tab Character Handling Test</h1>
+
+  <div class="info-box">
+    <p><strong>Test Objective:</strong> Verify that tab characters render consistently with 4-space width</p>
+    <p><strong>Expected Behavior:</strong></p>
+    <ul>
+      <li>Each tab character should render as 4 spaces</li>
+      <li>Tabs should be consistent across all code blocks</li>
+      <li>Mixed tabs and spaces should align properly</li>
+    </ul>
+  </div>
+
+  <div class="test-section">
+    <h2>Test 1: JavaScript with Tabs</h2>
+    <div class="code-block">
+      <div class="code-header">JavaScript</div>
+      <div class="code-content">
+        <pre><code>function example() {
+	console.log("This line has 1 tab");
+		console.log("This line has 2 tabs");
+			console.log("This line has 3 tabs");
+}</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test 2: Mixed Tabs and Spaces</h2>
+    <div class="code-block">
+      <div class="code-header">JavaScript</div>
+      <div class="code-content">
+        <pre><code>function mixed() {
+	console.log("Tab indent");
+    console.log("4 spaces indent");
+	    console.log("Tab + 4 spaces");
+        console.log("8 spaces indent");
+}</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test 3: Python with Tabs</h2>
+    <div class="code-block">
+      <div class="code-header">Python</div>
+      <div class="code-content">
+        <pre><code>def example():
+	print("This line has 1 tab")
+	if True:
+		print("This line has 2 tabs")
+		for i in range(3):
+			print(f"This line has 3 tabs: {i}")</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test 4: Tab Width Visual Guide</h2>
+    <div class="visual-guide">
+      <div class="ruler">0----5----10---15---20---25---30---35---40---45---50</div>
+      <pre><code>No indent
+	1 tab (should align at position 4)
+		2 tabs (should align at position 8)
+			3 tabs (should align at position 12)
+				4 tabs (should align at position 16)</code></pre>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test 5: Tab Alignment Test</h2>
+    <div class="code-block">
+      <div class="code-header">Alignment Test</div>
+      <div class="code-content">
+        <pre><code>// Each line should align at the same column
+const a	= 1;	// tab before =, tab before comment
+const bb	= 2;	// tab before =, tab before comment
+const ccc	= 3;	// tab before =, tab before comment</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <p><strong>Verification Steps:</strong></p>
+    <ol>
+      <li>Check that indentation levels are visually consistent</li>
+      <li>Verify that 1 tab = 4 character positions</li>
+      <li>Confirm that mixed tabs and spaces align correctly</li>
+      <li>Ensure tab width is the same across all code blocks</li>
+    </ol>
+  </div>
+
+  <script>
+    // Log tab character information
+    console.log('Tab character test loaded');
+    console.log('CSS tab-size property should be set to 4');
+    
+    // Check if tab-size is supported
+    const testElement = document.createElement('pre');
+    testElement.style.tabSize = '4';
+    if (testElement.style.tabSize === '4') {
+      console.log('✓ tab-size property is supported');
+    } else {
+      console.warn('⚠ tab-size property may not be supported in this browser');
+    }
+  </script>
+</body>
+</html>

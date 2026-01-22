@@ -119,7 +119,11 @@ export class DBClient {
     }
 
     const data = await response.json();
-    return data.messages;
+    // Convert timestamp strings back to Date objects
+    return data.messages.map((msg: any) => ({
+      ...msg,
+      timestamp: new Date(msg.timestamp),
+    }));
   }
 
   /**
@@ -161,5 +165,19 @@ export class DBClient {
 
     const data = await response.json();
     return data.user;
+  }
+
+  /**
+   * Delete a thread
+   */
+  static async deleteThread(threadId: string): Promise<void> {
+    const response = await fetch(`/api/db/threads?thread_id=${encodeURIComponent(threadId)}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to delete thread');
+    }
   }
 }

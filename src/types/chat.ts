@@ -19,10 +19,11 @@ export interface ChatMessage {
     content?: string;
   }>;
   uploadedFiles?: Array<{
+    file_id?: string; // Helium file ID (if available)
     name: string;
     type: string;
     size: number;
-    url: string; // Object URL for display
+    url?: string; // Object URL for display (temporary, only during upload)
   }>; // Files uploaded by the user
   error?: string;
   toolExecutions?: Array<{

@@ -5,6 +5,7 @@
 'use client';
 
 import React from 'react';
+import { CodeBlock } from '@/components/chat/CodeBlock';
 
 export function renderMarkdown(text: string): React.ReactNode {
   if (!text) return null;
@@ -35,66 +36,288 @@ export function renderMarkdown(text: string): React.ReactNode {
   cleanedText = cleanedText.trim();
 
   // Parse the cleaned text
-  const textParts = parseTextContent(cleanedText);
+  const blocks = parseMarkdownBlocks(cleanedText);
   const elements: React.ReactNode[] = [];
   
-  textParts.forEach((textPart, textIndex) => {
-    if (textPart.type === 'linebreak') {
-      elements.push(<br key={`br-${textIndex}`} />);
-    } else if (textPart.type === 'list') {
-      elements.push(
-        <div key={`list-${textIndex}`} className="flex items-start my-1">
-          <span className="mr-2 mt-0.5 text-blue-accent font-bold">•</span>
-          <span className="text-text-primary">{formatLine(textPart.content)}</span>
-        </div>
-      );
-    } else {
-      elements.push(
-        <span key={`text-${textIndex}`} className="leading-relaxed text-text-primary">
-          {formatLine(textPart.content)}
-        </span>
-      );
+  blocks.forEach((block, blockIndex) => {
+    switch (block.type) {
+      case 'code':
+        // Render code blocks with the CodeBlock component
+        elements.push(
+          <div key={`code-${blockIndex}`} className="my-4">
+            <CodeBlock 
+              language={block.language || 'text'} 
+              code={block.code || ''} 
+            />
+          </div>
+        );
+        break;
+      case 'h1':
+        elements.push(
+          <h1 key={`h1-${blockIndex}`} className="text-2xl font-bold text-gray-900 mt-4 mb-2">
+            {formatInline(block.content)}
+          </h1>
+        );
+        break;
+      case 'h2':
+        elements.push(
+          <h2 key={`h2-${blockIndex}`} className="text-xl font-bold text-gray-900 mt-4 mb-2">
+            {formatInline(block.content)}
+          </h2>
+        );
+        break;
+      case 'h3':
+        elements.push(
+          <h3 key={`h3-${blockIndex}`} className="text-lg font-semibold text-gray-900 mt-3 mb-2">
+            {formatInline(block.content)}
+          </h3>
+        );
+        break;
+      case 'h4':
+        elements.push(
+          <h4 key={`h4-${blockIndex}`} className="text-base font-semibold text-gray-900 mt-2 mb-1">
+            {formatInline(block.content)}
+          </h4>
+        );
+        break;
+      case 'ul':
+        elements.push(
+          <ul key={`ul-${blockIndex}`} className="my-2 space-y-1">
+            {block.items?.map((item, itemIndex) => (
+              <li key={`li-${blockIndex}-${itemIndex}`} className="flex items-start">
+                <span className="mr-2 mt-0.5 text-blue-500 font-bold">•</span>
+                <span className="text-gray-900 flex-1">{formatInline(item)}</span>
+              </li>
+            ))}
+          </ul>
+        );
+        break;
+      case 'ol':
+        elements.push(
+          <ol key={`ol-${blockIndex}`} className="my-2 space-y-1">
+            {block.items?.map((item, itemIndex) => (
+              <li key={`li-${blockIndex}-${itemIndex}`} className="flex items-start">
+                <span className="mr-2 text-gray-700 font-medium min-w-[1.5rem]">{itemIndex + 1}.</span>
+                <span className="text-gray-900 flex-1">{formatInline(item)}</span>
+              </li>
+            ))}
+          </ol>
+        );
+        break;
+      case 'paragraph':
+        elements.push(
+          <p key={`p-${blockIndex}`} className="my-2 text-gray-900 leading-relaxed">
+            {formatInline(block.content)}
+          </p>
+        );
+        break;
+      case 'linebreak':
+        elements.push(<br key={`br-${blockIndex}`} />);
+        break;
     }
   });
   
-  return <>{elements}</>;
+  return <div className="space-y-1">{elements}</div>;
 }
 
-interface TextPart {
-  type: 'text' | 'linebreak' | 'list';
+interface MarkdownBlock {
+  type: 'h1' | 'h2' | 'h3' | 'h4' | 'ul' | 'ol' | 'paragraph' | 'linebreak' | 'code';
   content: string;
+  items?: string[];
+  language?: string;
+  code?: string;
 }
 
-function parseTextContent(text: string): TextPart[] {
-  const lines = text.split('\n');
-  const parts: TextPart[] = [];
+/**
+ * Detects and extracts a code block starting at the given index
+ * @param lines - Array of text lines
+ * @param startIndex - Index where the opening fence is located
+ * @returns Object containing the code block (if found) and the index after the block
+ */
+function detectCodeBlock(lines: string[], startIndex: number): {
+  block: MarkdownBlock | null;
+  endIndex: number;
+} {
+  const openingLine = lines[startIndex].trim();
   
-  lines.forEach((line) => {
-    if (line.trim() === '') {
-      parts.push({ type: 'linebreak', content: '' });
-      return;
+  // Check if this is a code fence opening (```)
+  if (!openingLine.startsWith('```')) {
+    return { block: null, endIndex: startIndex };
+  }
+  
+  // Extract language identifier (everything after the opening ```)
+  const language = openingLine.substring(3).trim() || 'text';
+  
+  // Collect code lines until we find the closing fence
+  const codeLines: string[] = [];
+  let i = startIndex + 1;
+  let foundClosingFence = false;
+  
+  while (i < lines.length) {
+    const line = lines[i];
+    
+    // Check for closing fence (line that starts with ``` when trimmed)
+    if (line.trim().startsWith('```')) {
+      foundClosingFence = true;
+      break;
     }
     
-    // Check if it's a list item
-    const listMatch = line.match(/^[-•*]\s+(.+)$/);
-    if (listMatch) {
-      parts.push({ type: 'list', content: listMatch[1] });
-    } else {
-      parts.push({ type: 'text', content: line });
-    }
-  });
+    // Add line to code content (preserve original formatting, don't trim)
+    codeLines.push(line);
+    i++;
+  }
   
-  return parts;
+  // Join code lines with newlines
+  const code = codeLines.join('\n');
+  
+  // Create the code block
+  const block: MarkdownBlock = {
+    type: 'code',
+    content: '',
+    language,
+    code
+  };
+  
+  // If we found a closing fence, endIndex is after it
+  // If not (unclosed fence), endIndex is at the end of the array
+  const endIndex = foundClosingFence ? i + 1 : lines.length;
+  
+  return { block, endIndex };
 }
 
-function formatLine(text: string): React.ReactNode {
+function parseMarkdownBlocks(text: string): MarkdownBlock[] {
+  const lines = text.split('\n');
+  const blocks: MarkdownBlock[] = [];
+  let currentList: { type: 'ul' | 'ol'; items: string[] } | null = null;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmedLine = line.trim();
+    
+    // Check for code blocks FIRST (before other markdown elements)
+    // This ensures code blocks are processed with highest priority
+    if (trimmedLine.startsWith('```')) {
+      // Close any open list before starting a code block
+      if (currentList) {
+        blocks.push({ type: currentList.type, content: '', items: currentList.items });
+        currentList = null;
+      }
+      
+      // Detect and extract the code block
+      const { block, endIndex } = detectCodeBlock(lines, i);
+      
+      if (block) {
+        blocks.push(block);
+        // Move index to after the code block (endIndex - 1 because loop will increment)
+        i = endIndex - 1;
+        continue;
+      }
+    }
+    
+    // Empty line
+    if (trimmedLine === '') {
+      // Close any open list
+      if (currentList) {
+        blocks.push({ type: currentList.type, content: '', items: currentList.items });
+        currentList = null;
+      }
+      blocks.push({ type: 'linebreak', content: '' });
+      continue;
+    }
+    
+    // Headers
+    const h1Match = trimmedLine.match(/^#\s+(.+)$/);
+    const h2Match = trimmedLine.match(/^##\s+(.+)$/);
+    const h3Match = trimmedLine.match(/^###\s+(.+)$/);
+    const h4Match = trimmedLine.match(/^####\s+(.+)$/);
+    
+    if (h4Match) {
+      if (currentList) {
+        blocks.push({ type: currentList.type, content: '', items: currentList.items });
+        currentList = null;
+      }
+      blocks.push({ type: 'h4', content: h4Match[1] });
+      continue;
+    }
+    
+    if (h3Match) {
+      if (currentList) {
+        blocks.push({ type: currentList.type, content: '', items: currentList.items });
+        currentList = null;
+      }
+      blocks.push({ type: 'h3', content: h3Match[1] });
+      continue;
+    }
+    
+    if (h2Match) {
+      if (currentList) {
+        blocks.push({ type: currentList.type, content: '', items: currentList.items });
+        currentList = null;
+      }
+      blocks.push({ type: 'h2', content: h2Match[1] });
+      continue;
+    }
+    
+    if (h1Match) {
+      if (currentList) {
+        blocks.push({ type: currentList.type, content: '', items: currentList.items });
+        currentList = null;
+      }
+      blocks.push({ type: 'h1', content: h1Match[1] });
+      continue;
+    }
+    
+    // Unordered list items (-, •, *)
+    const ulMatch = trimmedLine.match(/^[-•*]\s+(.+)$/);
+    if (ulMatch) {
+      if (!currentList || currentList.type !== 'ul') {
+        if (currentList) {
+          blocks.push({ type: currentList.type, content: '', items: currentList.items });
+        }
+        currentList = { type: 'ul', items: [] };
+      }
+      currentList.items.push(ulMatch[1]);
+      continue;
+    }
+    
+    // Ordered list items (1., 2., etc.)
+    const olMatch = trimmedLine.match(/^\d+\.\s+(.+)$/);
+    if (olMatch) {
+      if (!currentList || currentList.type !== 'ol') {
+        if (currentList) {
+          blocks.push({ type: currentList.type, content: '', items: currentList.items });
+        }
+        currentList = { type: 'ol', items: [] };
+      }
+      currentList.items.push(olMatch[1]);
+      continue;
+    }
+    
+    // Regular paragraph
+    if (currentList) {
+      blocks.push({ type: currentList.type, content: '', items: currentList.items });
+      currentList = null;
+    }
+    blocks.push({ type: 'paragraph', content: trimmedLine });
+  }
+  
+  // Close any remaining list
+  if (currentList) {
+    blocks.push({ type: currentList.type, content: '', items: currentList.items });
+  }
+  
+  return blocks;
+}
+
+function formatInline(text: string): React.ReactNode {
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
   let keyIndex = 0;
   
-  // Combined regex for bold, italic, and links
-  // Matches: **bold**, *italic*, [link text](url)
-  const combinedRegex = /(\*\*([^*]+)\*\*)|(\*([^*]+)\*)|(\[([^\]]+)\]\(([^)]+)\))/g;
+  // Combined regex for bold, italic, markdown links, and plain URLs
+  // Matches: **bold**, *italic*, [link text](url), and plain URLs
+  // Updated URL pattern to match URLs more accurately (stop at whitespace or common punctuation)
+  const combinedRegex = /(\*\*([^*]+)\*\*)|(\*([^*]+)\*)|(\[([^\]]+)\]\(([^)]+)\))|(https?:\/\/[^\s<>]+)/g;
   let match;
   
   while ((match = combinedRegex.exec(text)) !== null) {
@@ -110,30 +333,63 @@ function formatLine(text: string): React.ReactNode {
     if (match[1]) {
       // Bold text (**text**)
       parts.push(
-        <strong key={`bold-${keyIndex++}`} className="font-semibold text-text-primary">
+        <strong key={`bold-${keyIndex++}`} className="font-semibold text-gray-900">
           {match[2]}
         </strong>
       );
     } else if (match[3]) {
       // Italic text (*text*)
       parts.push(
-        <em key={`italic-${keyIndex++}`} className="italic text-text-primary">
+        <em key={`italic-${keyIndex++}`} className="italic text-gray-900">
           {match[4]}
         </em>
       );
     } else if (match[5]) {
-      // Link [text](url)
+      // Markdown link [text](url)
       parts.push(
         <a
           key={`link-${keyIndex++}`}
           href={match[7]}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-accent hover:text-blue-accent-hover underline transition-colors duration-150"
+          className="text-blue-500 hover:text-blue-600 underline transition-colors duration-150 break-all"
         >
           {match[6]}
         </a>
       );
+    } else if (match[8]) {
+      // Plain URL (http:// or https://)
+      // Clean up trailing punctuation that's likely not part of the URL
+      let url = match[8];
+      let trailingPunctuation = '';
+      
+      // Remove common trailing punctuation
+      const punctuationMatch = url.match(/^(.*?)([\.,;:!?\)]+)$/);
+      if (punctuationMatch) {
+        url = punctuationMatch[1];
+        trailingPunctuation = punctuationMatch[2];
+      }
+      
+      parts.push(
+        <a
+          key={`url-${keyIndex++}`}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-500 hover:text-blue-600 underline transition-colors duration-150 break-all"
+        >
+          {url}
+        </a>
+      );
+      
+      // Add back the trailing punctuation as plain text
+      if (trailingPunctuation) {
+        parts.push(
+          <span key={`punct-${keyIndex++}`}>
+            {trailingPunctuation}
+          </span>
+        );
+      }
     }
     
     lastIndex = match.index + match[0].length;

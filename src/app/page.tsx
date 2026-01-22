@@ -5,11 +5,12 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { ChatContainer } from '@/components/chat/ChatContainer';
-import { ConversationSidebar } from '@/components/sidebar/ConversationSidebar';
 import { FileModal } from '@/components/files/FileModal';
 import { ProfileModal } from '@/components/user/ProfileModal';
 import { UserAvatar } from '@/components/user/UserAvatar';
+import { Sidebar } from '@/components/sidebar/Sidebar';
 import Aurora from '@/components/Aurora/Aurora';
 import { useChat } from '@/hooks/use-chat';
 import { ChatService } from '@/lib/chat-service';
@@ -20,6 +21,8 @@ import type { ThreadSummary } from '@/types/thread';
 import type { StreamEvent } from '@/types/stream';
 
 export default function Home() {
+  const router = useRouter();
+  
   const {
     state,
     addMessage,
@@ -45,13 +48,31 @@ export default function Home() {
   const filesRef = useRef<Array<{ file_id: string; file_name: string; file_size: number }>>([]);
   const toolExecutionsRef = useRef<Array<{ function_name: string; description?: string; status: 'running' | 'completed' | 'failed' }>>([]);
 
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Closed by default
+  const [sidebarOpen, setSidebarOpen] = useState(true); // Open by default on desktop
   const [threads, setThreads] = useState<ThreadSummary[]>([]);
   const [fileModalOpen, setFileModalOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [avatarDropdownOpen, setAvatarDropdownOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ id: string; email: string; username?: string; full_name?: string } | null>(null);
   const avatarDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Function to load threads from database
+  const loadThreads = useCallback(async (userId: string) => {
+    try {
+      const dbThreads = await DBClient.getUserThreads(userId);
+      const threadSummaries: ThreadSummary[] = dbThreads.map(thread => ({
+        threadId: thread.thread_id,
+        projectId: thread.project_id,
+        title: thread.title,
+        lastMessage: '',
+        lastUpdated: new Date(thread.last_message_at),
+        messageCount: thread.message_count,
+      }));
+      setThreads(threadSummaries);
+    } catch (error) {
+      console.error('Error loading threads:', error);
+    }
+  }, []);
 
   // Initialize user and load threads from database on mount
   useEffect(() => {
@@ -63,19 +84,7 @@ export default function Home() {
         setCurrentUser(user);
 
         // Load threads from database
-        const dbThreads = await DBClient.getUserThreads(user.id);
-        
-        // Convert database threads to ThreadSummary format
-        const threadSummaries: ThreadSummary[] = dbThreads.map(thread => ({
-          threadId: thread.thread_id,
-          projectId: thread.project_id,
-          title: thread.title,
-          lastMessage: '', // Will be populated from messages if needed
-          lastUpdated: new Date(thread.last_message_at),
-          messageCount: thread.message_count,
-        }));
-        
-        setThreads(threadSummaries);
+        await loadThreads(user.id);
       } catch (error) {
         console.error('Error initializing user:', error);
         // Fallback to empty state if database fails
@@ -84,7 +93,7 @@ export default function Home() {
     };
 
     initializeUser();
-  }, []);
+  }, [loadThreads]);
 
   // Cleanup streaming on unmount
   useEffect(() => {
@@ -205,8 +214,15 @@ export default function Home() {
                     if (parsed?.content) {
                       textChunk = parsed.content;
                     }
+                    // If parsed successfully but no content field, it's likely tool execution JSON - skip it
                   } catch {
-                    textChunk = event.content;
+                    // If it's not valid JSON, check if it looks like JSON (starts with { or [)
+                    // If so, skip it to avoid showing weird text
+                    const trimmed = event.content.trim();
+                    if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
+                      textChunk = event.content;
+                    }
+                    // Otherwise skip this content as it's likely malformed JSON
                   }
                 }
 
@@ -227,10 +243,9 @@ export default function Home() {
                 }
 
                 if (isComplete) {
-                  updateStatus('completed');
-                  setLoading(false);
+                  // Don't set status to completed here - wait for the final 'complete' event
+                  // Just update the content one last time
                   updateMessage(streamingMessageIdRef.current, {
-                    status: 'completed',
                     content: accumulatedContentRef.current || textChunk,
                     codeBlocks: codeBlocksRef.current.length > 0 ? codeBlocksRef.current : undefined,
                     files: filesRef.current.length > 0 ? filesRef.current : undefined,
@@ -311,6 +326,7 @@ export default function Home() {
                   if (!exists) {
                     console.log('Adding new file:', event.file.file_name);
                     filesRef.current.push(event.file);
+                    console.log('Files array now has', filesRef.current.length, 'files:', filesRef.current);
                     updateMessage(streamingMessageIdRef.current, {
                       content: accumulatedContentRef.current,
                       codeBlocks: codeBlocksRef.current.length > 0 ? codeBlocksRef.current : undefined,
@@ -531,21 +547,29 @@ export default function Home() {
                 // Save assistant message to database
                 if (currentUser && streamingMessageIdRef.current) {
                   try {
-                    // Get the current message from state
-                    const currentMessage = state.messages.find(m => m.id === streamingMessageIdRef.current);
-                    if (currentMessage) {
-                      await DBClient.saveMessage(threadId, {
-                        ...currentMessage,
-                        content: accumulatedContentRef.current,
-                        status: 'completed',
-                        files: filesRef.current.length > 0 ? filesRef.current : undefined,
-                        codeBlocks: codeBlocksRef.current.length > 0 ? codeBlocksRef.current : undefined,
-                        toolExecutions: toolExecutionsRef.current.length > 0 ? toolExecutionsRef.current : undefined,
-                      });
-                      console.log('Assistant message saved to database');
-                    }
+                    console.log('Saving assistant message to database:', {
+                      messageId: streamingMessageIdRef.current,
+                      contentLength: accumulatedContentRef.current.length,
+                      filesCount: filesRef.current.length,
+                      codeBlocksCount: codeBlocksRef.current.length,
+                    });
+                    
+                    // Construct the message directly from refs instead of relying on state
+                    const assistantMessage: ChatMessage = {
+                      id: streamingMessageIdRef.current,
+                      role: 'assistant',
+                      content: accumulatedContentRef.current,
+                      timestamp: new Date(),
+                      status: 'completed',
+                      files: filesRef.current.length > 0 ? filesRef.current : undefined,
+                      codeBlocks: codeBlocksRef.current.length > 0 ? codeBlocksRef.current : undefined,
+                      toolExecutions: toolExecutionsRef.current.length > 0 ? toolExecutionsRef.current : undefined,
+                    };
+                    
+                    await DBClient.saveMessage(threadId, assistantMessage);
+                    console.log('✓ Assistant message saved to database successfully');
                   } catch (dbError) {
-                    console.error('Error saving assistant message to database:', dbError);
+                    console.error('❌ Error saving assistant message to database:', dbError);
                   }
                 }
               }
@@ -567,7 +591,7 @@ export default function Home() {
         stopStreaming();
       });
     },
-    [updateMessage, updateStatus, setLoading, handleError, stopStreaming, state.threadId, state.projectId, currentUser, state.messages]
+    [updateMessage, updateStatus, setLoading, handleError, stopStreaming, state.threadId, state.projectId, currentUser]
   );
 
   const handleSend = useCallback(
@@ -580,6 +604,56 @@ export default function Home() {
         setLoading(true);
         updateStatus('sending');
 
+        // Create task or continue conversation
+        let threadId = state.threadId;
+        let projectId = state.projectId;
+
+        if (!threadId || !projectId) {
+          // New conversation - create task and redirect IMMEDIATELY (before adding messages)
+          const taskResponse = await ChatService.createTask(message, files);
+          threadId = taskResponse.threadId;
+          projectId = taskResponse.projectId;
+
+          // Save thread and user message to database before redirecting
+          if (currentUser) {
+            try {
+              const threadTitle = message.length > 50 ? message.substring(0, 50) + '...' : message;
+              await DBClient.createThread(
+                currentUser.id,
+                threadId,
+                projectId,
+                threadTitle
+              );
+
+              // Save the user message to database so it appears when thread page loads
+              const uploadedFilesData = files && files.length > 0
+                ? files.map(file => ({
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    url: URL.createObjectURL(file),
+                  }))
+                : undefined;
+
+              await DBClient.saveMessage(threadId, {
+                id: `user-${Date.now()}`,
+                role: 'user',
+                content: message,
+                timestamp: new Date(),
+                status: 'completed',
+                uploadedFiles: uploadedFilesData,
+              });
+            } catch (dbError) {
+              console.error('Error saving thread/message:', dbError);
+            }
+          }
+
+          // Redirect immediately with a flag to indicate new thread
+          router.push(`/project/${projectId}/thread/${threadId}?new=true`);
+          return; // Exit early
+        }
+
+        // Continue conversation (existing thread)
         // Convert files to serializable format with object URLs
         const uploadedFilesData = files && files.length > 0
           ? files.map(file => {
@@ -604,56 +678,13 @@ export default function Home() {
           uploadedFiles: uploadedFilesData,
         });
 
-        // Create task or continue conversation
-        let threadId = state.threadId;
-        let projectId = state.projectId;
-
-        if (!threadId || !projectId) {
-          // New conversation
-          const taskResponse = await ChatService.createTask(message, files);
-          threadId = taskResponse.threadId;
-          projectId = taskResponse.projectId;
-          setThreadInfo(threadId, projectId);
-
-          // Save thread to database
-          if (currentUser) {
-            try {
-              const threadTitle = message.length > 50 ? message.substring(0, 50) + '...' : message;
-              await DBClient.createThread(
-                currentUser.id,
-                threadId,
-                projectId,
-                threadTitle
-              );
-
-              // Reload threads from database
-              const dbThreads = await DBClient.getUserThreads(currentUser.id);
-              const threadSummaries: ThreadSummary[] = dbThreads.map(thread => ({
-                threadId: thread.thread_id,
-                projectId: thread.project_id,
-                title: thread.title,
-                lastMessage: message,
-                lastUpdated: new Date(thread.last_message_at),
-                messageCount: thread.message_count,
-              }));
-              setThreads(threadSummaries);
-
-              // Save user message to database
-              await DBClient.saveMessage(threadId, {
-                id: userMessageId,
-                role: 'user',
-                content: message,
-                timestamp: new Date(),
-                status: 'completed',
-                uploadedFiles: uploadedFilesData,
-              });
-            } catch (dbError) {
-              console.error('Error saving to database:', dbError);
-              // Continue even if database save fails
-            }
-          }
-        } else {
-          // Continue conversation and save message to database
+        // Add assistant message placeholder IMMEDIATELY to show loading indicator
+        const assistantMessageId = addMessage({
+          role: 'assistant',
+          content: '',
+          status: 'running',
+        });
+        // Continue conversation and save message to database
           if (currentUser) {
             try {
               await DBClient.saveMessage(threadId, {
@@ -683,14 +714,6 @@ export default function Home() {
           
           // Continue conversation
           await ChatService.continueConversation(threadId, projectId, message, files);
-        }
-
-        // Add assistant message placeholder
-        const assistantMessageId = addMessage({
-          role: 'assistant',
-          content: '',
-          status: 'running',
-        });
 
         updateStatus('waiting');
 
@@ -795,76 +818,48 @@ export default function Home() {
   }, [currentUser]);
 
   return (
-    <main className="flex h-screen bg-navy-900 relative overflow-hidden w-full max-w-full">
-      {/* Aurora Background - Disabled for ChatGPT-style theme */}
-      {/* <div className="absolute inset-0 z-0">
-        <Aurora
-          colorStops={['#7cff67', '#B19EEF', '#5227FF']}
-          blend={0.5}
-          amplitude={1.0}
-          speed={1}
-        />
-      </div> */}
-
+    <main className="flex h-screen bg-white relative overflow-hidden w-full max-w-full">
       {/* Sidebar */}
-      {/* On mobile: overlay with z-50, On desktop: docked with relative positioning */}
-      <ConversationSidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
+      <Sidebar 
+        isOpen={sidebarOpen} 
+        onToggle={() => setSidebarOpen(!sidebarOpen)} 
         threads={threads}
-        currentThreadId={state.threadId}
-        onSelectThread={handleSelectThread}
-        onNewChat={handleNewChat}
+        onThreadDeleted={() => currentUser && loadThreads(currentUser.id)}
       />
 
       {/* Main content */}
-      {/* Flex-1 ensures it takes remaining space after sidebar on desktop */}
       <div className="flex flex-col flex-1 overflow-hidden relative z-10 w-full">
-        {/* Header */}
-        <header className="border-b border-navy-700 bg-black px-4 lg:px-6 py-4 relative z-10">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="p-2 text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded-lg transition-all duration-200 ease-in-out"
-                aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
-                aria-expanded={sidebarOpen}
-                aria-controls="conversation-sidebar"
-                title={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+        {/* Navbar */}
+        <nav className="navbar w-full bg-white border-b border-gray-200">
+          <div className="flex items-center justify-between w-full px-4">
+            {/* Left side - Sidebar toggle button (mobile only) */}
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="Toggle sidebar"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                strokeLinejoin="round"
+                strokeLinecap="round"
+                strokeWidth="2"
+                fill="none"
+                stroke="currentColor"
+                className="w-6 h-6"
               >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  {sidebarOpen ? (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  ) : (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16M4 18h16"
-                    />
-                  )}
-                </svg>
-              </button>
-              <div className="text-center">
-                <h1 className="text-xl lg:text-2xl font-bold text-gray-100">AI BRAIN</h1>
-              </div>
-            </div>
+                <path d="M4 6h16M4 12h16M4 18h16"></path>
+              </svg>
+            </button>
+            
+            <div className="flex-1"></div>
+            
             <div className="flex items-center gap-3">
-              {/* Folder icon button - only show when thread is active, hidden on mobile */}
+              {/* Folder icon button - only show when thread is active */}
               {state.threadId && state.projectId && (
                 <button
                   onClick={() => setFileModalOpen(true)}
-                  className="hidden sm:block p-2 text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded-lg transition-all duration-200 ease-in-out"
+                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200 ease-in-out"
                   aria-label="View thread files"
                   title="View all files in this thread"
                 >
@@ -883,108 +878,9 @@ export default function Home() {
                   </svg>
                 </button>
               )}
-              
-              {/* User Profile Section */}
-              <div className="relative flex items-center gap-2" ref={avatarDropdownRef}>
-                {/* Score/Status Indicator - hidden on mobile */}
-                <span className="hidden sm:block text-xs font-semibold text-gray-300">
-                  6/75
-                </span>
-                
-                {/* User Avatar */}
-                <UserAvatar
-                  userName={currentUser?.full_name || currentUser?.username || 'User'}
-                  size={36}
-                  onClick={() => setAvatarDropdownOpen(!avatarDropdownOpen)}
-                  aria-expanded={avatarDropdownOpen}
-                  aria-haspopup="true"
-                  aria-label="User menu"
-                />
-
-                {/* Dropdown Menu */}
-                {avatarDropdownOpen && (
-                  <div 
-                    className="absolute top-full right-0 mt-2 w-56 bg-navy-900 border border-navy-700 rounded-xl shadow-xl overflow-hidden z-50 backdrop-blur-md"
-                    role="menu"
-                    aria-label="User account menu"
-                  >
-                    {/* User Info Section */}
-                    <div className="px-4 py-3 border-b border-navy-700">
-                      <p className="text-sm font-bold text-gray-100">{currentUser?.full_name || currentUser?.username || 'User'}</p>
-                      <p className="text-xs font-normal text-gray-400 mt-1">{currentUser?.email || 'user@example.com'}</p>
-                    </div>
-
-                    {/* Menu Items */}
-                    <div className="py-1">
-                      <button
-                        onClick={() => {
-                          setProfileModalOpen(true);
-                          setAvatarDropdownOpen(false);
-                        }}
-                        className="w-full px-4 py-3 text-left text-sm font-medium text-gray-300 hover:bg-navy-800 hover:text-gray-100 transition-all duration-150 ease-in-out flex items-center gap-3"
-                        role="menuitem"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        <span>Profile</span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          console.log('Settings clicked');
-                          setAvatarDropdownOpen(false);
-                        }}
-                        className="w-full px-4 py-3 text-left text-sm font-medium text-gray-300 hover:bg-navy-800 hover:text-gray-100 transition-all duration-150 ease-in-out flex items-center gap-3"
-                        role="menuitem"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        <span>Settings</span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          console.log('Help clicked');
-                          setAvatarDropdownOpen(false);
-                        }}
-                        className="w-full px-4 py-3 text-left text-sm font-medium text-gray-300 hover:bg-navy-800 hover:text-gray-100 transition-all duration-150 ease-in-out flex items-center gap-3"
-                        role="menuitem"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span>Help & Support</span>
-                      </button>
-                    </div>
-
-                    {/* Divider */}
-                    <div className="border-t border-navy-700"></div>
-
-                    {/* Logout */}
-                    <div className="py-1">
-                      <button
-                        onClick={() => {
-                          console.log('Logout clicked');
-                          setAvatarDropdownOpen(false);
-                        }}
-                        className="w-full px-4 py-3 text-left text-sm font-semibold text-red-400 hover:bg-navy-800 hover:text-red-300 transition-all duration-150 ease-in-out flex items-center gap-3"
-                        role="menuitem"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
-                        <span>Logout</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
-        </header>
+        </nav>
 
         {/* Chat container */}
         <div className="flex-1 overflow-hidden">
