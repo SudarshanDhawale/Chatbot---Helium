@@ -14,7 +14,7 @@ const inputStyles = `
     -webkit-backdrop-filter: blur(20px);
     border-radius: 28px;
     padding: 20px;
-    box-shadow: 0 10px 40px rgba(156, 163, 175, 0.25), 0 4px 12px rgba(156, 163, 175, 0.15);
+    box-shadow: 0 10px 20px rgba(156, 163, 175, 0.25), 0 2px 12px rgba(156, 163, 175, 0.15);
   }
   .chat-input-card {
     background: rgba(255, 255, 255, 0.98);
