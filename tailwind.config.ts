@@ -27,7 +27,19 @@ const config: Config = {
         'text-muted': '#8e8e8e',  // Muted text (darker gray)
       },
       fontFamily: {
-        'raleway': ['var(--font-raleway)', 'sans-serif'],
+        'open-sans': ['var(--font-open-sans)', 'sans-serif'],
+        'sans': ['var(--font-open-sans)', 'system-ui', '-apple-system', 'sans-serif'],
+      },
+      fontSize: {
+        // ChatGPT-like font sizes
+        'xs': ['0.75rem', { lineHeight: '1rem' }],      // 12px
+        'sm': ['0.8125rem', { lineHeight: '1.25rem' }], // 13px
+        'base': ['0.875rem', { lineHeight: '1.5rem' }], // 14px - main text
+        'md': ['0.9375rem', { lineHeight: '1.5rem' }],  // 15px - user messages
+        'lg': ['1rem', { lineHeight: '1.75rem' }],      // 16px - headings
+        'xl': ['1.125rem', { lineHeight: '1.75rem' }],  // 18px
+        '2xl': ['1.25rem', { lineHeight: '2rem' }],     // 20px
+        '3xl': ['1.5rem', { lineHeight: '2rem' }],      // 24px
       },
       spacing: {
         // Custom spacing values

@@ -1,28 +1,50 @@
 /**
- * Sidebar component with drawer functionality
+ * Sidebar component with hover-based drawer functionality
  */
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import type { ThreadSummary } from '@/types/thread';
 
 interface SidebarProps {
-  isOpen: boolean;
-  onToggle: () => void;
   threads?: ThreadSummary[];
   onThreadDeleted?: () => void;
 }
 
-export function Sidebar({ isOpen, onToggle, threads = [], onThreadDeleted }: SidebarProps) {
+export function Sidebar({ threads = [], onThreadDeleted }: SidebarProps) {
+  const [isHovered, setIsHovered] = useState(false);
   const router = useRouter();
   const params = useParams();
   const [deletingThreadId, setDeletingThreadId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [threadToDelete, setThreadToDelete] = useState<ThreadSummary | null>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const hoverZoneRef = useRef<HTMLDivElement>(null);
 
   const currentThreadId = params?.threadId as string | undefined;
+
+  // Handle hover detection for opening/closing sidebar
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const hoverThreshold = 50; // pixels from left edge to trigger open
+      const sidebarWidth = 256; // 64 * 4 = 256px (w-64)
+      const closeThreshold = sidebarWidth + 50; // pixels from left edge to trigger close
+
+      // Open sidebar when hovering near left edge
+      if (e.clientX <= hoverThreshold && !isHovered) {
+        setIsHovered(true);
+      }
+      // Close sidebar when mouse moves away from sidebar area
+      else if (e.clientX > closeThreshold && isHovered) {
+        setIsHovered(false);
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [isHovered]);
 
   const handleHomeClick = () => {
     router.push('/');
@@ -84,60 +106,37 @@ export function Sidebar({ isOpen, onToggle, threads = [], onThreadDeleted }: Sid
 
   return (
     <>
-      {/* Drawer toggle input */}
-      <input
-        id="sidebar-drawer"
-        type="checkbox"
-        checked={isOpen}
-        onChange={onToggle}
-        className="hidden"
+      {/* Hover trigger zone - invisible area on left edge */}
+      <div
+        ref={hoverZoneRef}
+        className="fixed top-0 left-0 w-12 h-full z-40 pointer-events-auto"
+        aria-hidden="true"
       />
 
-      {/* Overlay - only visible on mobile when drawer is open */}
-      {isOpen && (
-        <label
-          htmlFor="sidebar-drawer"
-          onClick={onToggle}
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+      {/* Overlay - only visible on mobile when sidebar is hovered */}
+      {isHovered && (
+        <div
+          onClick={() => setIsHovered(false)}
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity duration-300"
           aria-label="Close sidebar"
         />
       )}
 
       {/* Sidebar */}
       <aside
+        ref={sidebarRef}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         className={`
           fixed top-0 left-0 h-full bg-white border-r border-gray-200 z-50
-          transition-all duration-300 ease-in-out
-          ${isOpen ? 'w-64' : 'w-14'}
-          lg:relative lg:z-auto
+          transition-transform duration-300 ease-in-out w-64
+          ${isHovered ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
         <div className="flex flex-col h-full">
           {/* Sidebar Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            {isOpen && (
-              <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
-            )}
-            <button
-              onClick={onToggle}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              aria-label={isOpen ? 'Close sidebar' : 'Open sidebar'}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                strokeLinejoin="round"
-                strokeLinecap="round"
-                strokeWidth="2"
-                fill="none"
-                stroke="currentColor"
-                className="w-5 h-5 text-gray-600"
-              >
-                <path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"></path>
-                <path d="M9 4v16"></path>
-                <path d={isOpen ? "M14 10l2 2l-2 2" : "M14 10l-2 2l2 2"}></path>
-              </svg>
-            </button>
+            <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
           </div>
 
           {/* Sidebar Content */}
@@ -147,13 +146,7 @@ export function Sidebar({ isOpen, onToggle, threads = [], onThreadDeleted }: Sid
               <li>
                 <button
                   onClick={handleHomeClick}
-                  className={`
-                    w-full flex items-center gap-3 px-3 py-2 rounded-lg
-                    text-gray-700 hover:bg-gray-100 hover:text-gray-900
-                    transition-colors duration-150
-                    ${!isOpen && 'justify-center'}
-                  `}
-                  title={!isOpen ? 'Homepage' : undefined}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-150"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -168,12 +161,12 @@ export function Sidebar({ isOpen, onToggle, threads = [], onThreadDeleted }: Sid
                     <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path>
                     <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                   </svg>
-                  {isOpen && <span className="font-medium">New Chat</span>}
+                  <span className="font-medium">New Chat</span>
                 </button>
               </li>
 
               {/* Thread List Section */}
-              {isOpen && threads.length > 0 && (
+              {threads.length > 0 && (
                 <>
                   <li className="pt-4 pb-2">
                     <div className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -252,42 +245,13 @@ export function Sidebar({ isOpen, onToggle, threads = [], onThreadDeleted }: Sid
                   ))}
                 </>
               )}
-
-              {/* Collapsed state - show thread count */}
-              {!isOpen && threads.length > 0 && (
-                <li className="pt-2">
-                  <div
-                    className="flex items-center justify-center px-3 py-2 text-xs font-semibold text-gray-500"
-                    title={`${threads.length} conversations`}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      strokeLinejoin="round"
-                      strokeLinecap="round"
-                      strokeWidth="2"
-                      fill="none"
-                      stroke="currentColor"
-                      className="w-5 h-5"
-                    >
-                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                    </svg>
-                  </div>
-                </li>
-              )}
             </ul>
           </nav>
 
           {/* Sidebar Footer */}
           <div className="p-2 border-t border-gray-200">
             <button
-              className={`
-                w-full flex items-center gap-3 px-3 py-2 rounded-lg
-                text-gray-700 hover:bg-gray-100 hover:text-gray-900
-                transition-colors duration-150
-                ${!isOpen && 'justify-center'}
-              `}
-              title={!isOpen ? 'Help' : undefined}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-150"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -303,7 +267,7 @@ export function Sidebar({ isOpen, onToggle, threads = [], onThreadDeleted }: Sid
                 <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
                 <path d="M12 17h.01"></path>
               </svg>
-              {isOpen && <span className="font-medium">Help</span>}
+              <span className="font-medium">Help</span>
             </button>
           </div>
         </div>

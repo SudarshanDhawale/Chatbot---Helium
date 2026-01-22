@@ -52,7 +52,6 @@ export default function ThreadPage() {
   const filesRef = useRef<Array<{ file_id: string; file_name: string; file_size: number }>>([]);
   const toolExecutionsRef = useRef<Array<{ function_name: string; description?: string; status: 'running' | 'completed' | 'failed' }>>([]);
 
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [threads, setThreads] = useState<ThreadSummary[]>([]);
   const [fileModalOpen, setFileModalOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
@@ -742,8 +741,6 @@ export default function ThreadPage() {
   return (
     <main className="flex h-screen bg-white relative overflow-hidden w-full max-w-full">
       <Sidebar 
-        isOpen={sidebarOpen} 
-        onToggle={() => setSidebarOpen(!sidebarOpen)} 
         threads={threads}
         onThreadDeleted={() => currentUser && loadThreads(currentUser.id)}
       />
@@ -751,25 +748,6 @@ export default function ThreadPage() {
       <div className="flex flex-col flex-1 overflow-hidden relative z-10 w-full">
         <nav className="navbar w-full bg-white border-b border-gray-200">
           <div className="flex items-center justify-between w-full px-4">
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              aria-label="Toggle sidebar"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                strokeLinejoin="round"
-                strokeLinecap="round"
-                strokeWidth="2"
-                fill="none"
-                stroke="currentColor"
-                className="w-6 h-6"
-              >
-                <path d="M4 6h16M4 12h16M4 18h16"></path>
-              </svg>
-            </button>
-            
             <div className="flex-1"></div>
             
             <div className="flex items-center gap-3">
