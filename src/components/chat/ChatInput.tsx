@@ -154,7 +154,7 @@ export function ChatInput({
   return (
     <>
       <style>{inputStyles}</style>
-      <form onSubmit={handleSubmit} className="p-6 w-full max-w-full overflow-x-hidden">
+      <form onSubmit={handleSubmit} className="p-6 w-full max-w-full overflow-x-hidden bg-transparent">
         <div className="max-w-3xl mx-auto flex flex-col items-center w-full gap-4">
           
           {/* File preview - moved above text field */}

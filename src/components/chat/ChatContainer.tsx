@@ -167,7 +167,7 @@ export function ChatContainer({
       {/* Input area - always positioned at bottom with blur effect */}
       <div className="flex-shrink-0 transition-all duration-500 ease-in-out relative">
         {/* Blur overlay for content scrolling underneath */}
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none -z-10"></div>
+        <div className="absolute inset-x-0 -top-24 h-24 bg-gradient-to-t from-white to-transparent pointer-events-none z-10"></div>
         <ChatInput 
           onSend={onSend} 
           onStop={onStop}
