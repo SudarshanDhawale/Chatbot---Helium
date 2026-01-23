@@ -4,7 +4,9 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { prism } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 // Get a friendly display name for the language
 function getLanguageDisplayName(lang: string): string {
@@ -33,20 +35,94 @@ interface CodeBlockProps {
   code: string;
 }
 
+// Fallback component for when syntax highlighting fails
+function PlainCodeBlock({ code }: { code: string }) {
+  return (
+    <pre
+      style={{
+        margin: 0,
+        padding: '1rem',
+        background: 'transparent',
+        fontSize: '0.875rem',
+        lineHeight: '1.625',
+        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+        color: '#d4d4d4',
+        whiteSpace: 'pre',
+        overflowX: 'auto',
+        tabSize: 4,
+      }}
+    >
+      <code style={{ tabSize: 4 }}>{code}</code>
+    </pre>
+  );
+}
+
+// Component that safely renders syntax highlighting with fallback
+function SafeSyntaxHighlighter({ language, code }: { language: string; code: string }) {
+  const [hasError, setHasError] = useState(false);
+
+  // Reset error state when language or code changes
+  useEffect(() => {
+    setHasError(false);
+  }, [language, code]);
+
+  if (hasError) {
+    return <PlainCodeBlock code={code} />;
+  }
+
+  try {
+    return (
+      <SyntaxHighlighter
+        language={language}
+        style={prism}
+        customStyle={{
+          margin: 0,
+          padding: '1rem',
+          background: '#f3f4f6', // grey background
+          fontSize: '0.875rem',
+          lineHeight: '1.625',
+          whiteSpace: 'pre',
+          tabSize: 4,
+        }}
+        codeTagProps={{
+          style: {
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+            tabSize: 4,
+            color: '#000000', // black text
+          }
+        }}
+        wrapLines={false}
+        wrapLongLines={false}
+        PreTag="div"
+      >
+        {code}
+      </SyntaxHighlighter>
+    );
+  } catch (error) {
+    // If SyntaxHighlighter throws during render, fall back to plain code
+    return <PlainCodeBlock code={code} />;
+  }
+}
+
 export function CodeBlock({ language, code }: CodeBlockProps) {
   const displayName = getLanguageDisplayName(language || 'code');
   const [copied, setCopied] = useState(false);
+  const isEmpty = code === '';
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      // Failed to copy - maintain original button state
+    }
   };
 
   return (
     <div className="rounded-lg overflow-hidden border border-navy-700 bg-navy-950/80 backdrop-blur-sm">
       {/* Header with language and copy button */}
-      <div className="flex items-center justify-between px-4 py-2 bg-navy-950/60 border-b border-navy-700">
+      <div className="flex items-center justify-between px-4 py-2 bg-navy-950/60 border-b border-navy-100">
         <div className="flex items-center gap-2">
           <svg
             className="w-4 h-4 text-text-secondary"
@@ -88,13 +164,28 @@ export function CodeBlock({ language, code }: CodeBlockProps) {
         </button>
       </div>
       
-      {/* Code content with monospace font */}
-      <div className="overflow-x-auto">
-        <pre className="p-4 text-sm leading-relaxed">
-          <code className="font-mono text-text-primary whitespace-pre">
-            {code}
-          </code>
-        </pre>
+      {/* Code content with syntax highlighting and fallback */}
+      <div 
+        className="overflow-x-auto overflow-y-auto"
+        style={{
+          maxHeight: '500px',
+          scrollbarWidth: 'thin',
+          scrollbarColor: 'rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0.2)',
+        }}
+      >
+        {isEmpty ? (
+          <div 
+            className="flex items-center justify-center text-text-secondary italic"
+            style={{
+              padding: '2rem 1rem',
+              minHeight: '4rem',
+            }}
+          >
+            Empty code block
+          </div>
+        ) : (
+          <SafeSyntaxHighlighter language={language} code={code} />
+        )}
       </div>
     </div>
   );

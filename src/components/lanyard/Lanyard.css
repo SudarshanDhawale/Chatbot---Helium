@@ -1,0 +1,16 @@
+.lanyard-wrapper {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  z-index: 10;
+  width: 200px;
+  height: 300px;
+  pointer-events: auto;
+}
+
+@media (max-width: 768px) {
+  .lanyard-wrapper {
+    width: 150px;
+    height: 200px;
+  }
+}

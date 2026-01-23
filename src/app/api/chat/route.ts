@@ -9,12 +9,13 @@ import { getErrorMessage } from '@/utils/errors';
 
 export async function POST(request: NextRequest) {
   try {
-    const apiKey = process.env.HELIUM_API_KEY;
+    // Try to get API key from header first, fallback to environment variable
+    const apiKey = request.headers.get('x-helium-api-key') || process.env.HELIUM_API_KEY;
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'HELIUM_API_KEY environment variable is not set' },
-        { status: 500 }
+        { error: 'API key is required. Please provide your Helium API key.' },
+        { status: 401 }
       );
     }
 

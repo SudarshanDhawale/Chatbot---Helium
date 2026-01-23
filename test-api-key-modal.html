@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Key Modal Preview</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .animate-spin {
+      animation: spin 1s linear infinite;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 p-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-4">API Key Modal Preview</h1>
+    <p class="mb-4 text-gray-600">This is how the API key modal will appear to users when they first visit the application.</p>
+    
+    <button onclick="showModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 mb-8">
+      Show Modal
+    </button>
+
+    <!-- Modal -->
+    <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4">
+          <h2 class="text-xl font-semibold text-white">
+            Welcome to Helium Chat
+          </h2>
+          <p class="text-blue-100 text-sm mt-1">
+            Enter your API key to get started
+          </p>
+        </div>
+
+        <!-- Content -->
+        <form onsubmit="handleSubmit(event)" class="p-6">
+          <div class="mb-4">
+            <label for="apiKey" class="block text-sm font-medium text-gray-700 mb-2">
+              Helium API Key
+            </label>
+            <input
+              id="apiKey"
+              type="text"
+              placeholder="he-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-gray-900 placeholder-gray-400"
+              autofocus
+            />
+            <p class="text-xs text-gray-500 mt-2">
+              Get your API key from 
+              <a href="https://app.he2.ai" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-700 underline">
+                app.he2.ai
+              </a>
+            </p>
+          </div>
+
+          <!-- Error message (hidden by default) -->
+          <div id="error" class="hidden mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+            <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-sm text-red-700" id="errorText">Invalid API key. Please check your key and try again.</p>
+          </div>
+
+          <!-- Submit button -->
+          <button
+            type="submit"
+            id="submitBtn"
+            class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium py-2.5 px-4 rounded-lg transition-colors duration-200"
+          >
+            Continue
+          </button>
+        </form>
+
+        <!-- Footer -->
+        <div class="bg-gray-50 px-6 py-3 border-t border-gray-200">
+          <p class="text-xs text-gray-600">
+            Your API key is stored locally in your browser and will be validated when you send your first message.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showModal() {
+      document.getElementById('modal').classList.remove('hidden');
+    }
+
+    function hideModal() {
+      document.getElementById('modal').classList.add('hidden');
+    }
+
+    function showError(message) {
+      const errorDiv = document.getElementById('error');
+      const errorText = document.getElementById('errorText');
+      errorText.textContent = message;
+      errorDiv.classList.remove('hidden');
+    }
+
+    function hideError() {
+      document.getElementById('error').classList.add('hidden');
+    }
+
+    function handleSubmit(event) {
+      event.preventDefault();
+      const apiKey = document.getElementById('apiKey').value;
+      
+      hideError();
+      
+      if (!apiKey.trim()) {
+        showError('Please enter an API key');
+        return;
+      }
+      
+      if (!apiKey.startsWith('he-')) {
+        showError('Invalid API key format. API key must start with "he-"');
+        return;
+      }
+      
+      // Just store the key - no validation
+      hideModal();
+      alert('API key saved! It will be validated when you send your first message.');
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('modal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        hideModal();
+      }
+    });
+  </script>
+</body>
+</html>

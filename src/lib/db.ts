@@ -28,10 +28,8 @@ function getPool(): Pool {
 
     // Handle pool errors
     pool.on('error', (err) => {
-      console.error('Unexpected error on idle client', err);
+      // Database pool error - handled silently
     });
-
-    console.log('✅ Database pool initialized');
   }
 
   return pool;
@@ -41,14 +39,10 @@ function getPool(): Pool {
  * Execute a query
  */
 export async function query(text: string, params?: any[]) {
-  const start = Date.now();
   try {
     const res = await getPool().query(text, params);
-    const duration = Date.now() - start;
-    console.log('Executed query', { text: text.substring(0, 50) + '...', duration, rows: res.rowCount });
     return res;
   } catch (error) {
-    console.error('Database query error:', error);
     throw error;
   }
 }

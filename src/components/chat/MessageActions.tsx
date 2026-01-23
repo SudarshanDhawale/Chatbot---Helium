@@ -23,14 +23,12 @@ export function MessageActions({ messageId, content, visible, disabled = false }
     setThumbsUpActive(!thumbsUpActive);
     setThumbsDownActive(false);
     // TODO: Send feedback to backend
-    console.log('Thumbs up for message:', messageId);
   };
 
   const handleThumbsDown = () => {
     setThumbsDownActive(!thumbsDownActive);
     setThumbsUpActive(false);
     // TODO: Send feedback to backend
-    console.log('Thumbs down for message:', messageId);
   };
 
   const handleCopy = async () => {
@@ -39,7 +37,7 @@ export function MessageActions({ messageId, content, visible, disabled = false }
       setCopyFeedback(true);
       setTimeout(() => setCopyFeedback(false), 2000);
     } catch (err) {
-      console.error('Failed to copy text:', err);
+      // Failed to copy
     }
   };
 

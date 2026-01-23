@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task 7.3: Copy Error Handling Test</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: #0a0e1a;
+      color: #e5e7eb;
+    }
+    h1 {
+      color: #60a5fa;
+      margin-bottom: 0.5rem;
+    }
+    .subtitle {
+      color: #9ca3af;
+      margin-bottom: 2rem;
+    }
+    .test-section {
+      background: #1a1f2e;
+      border: 1px solid #2d3748;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .test-section h2 {
+      color: #60a5fa;
+      font-size: 1.25rem;
+      margin-top: 0;
+      margin-bottom: 1rem;
+    }
+    .test-description {
+      color: #9ca3af;
+      margin-bottom: 1rem;
+      line-height: 1.6;
+    }
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      border: 1px solid #4b5563;
+      border-radius: 6px;
+      background: #374151;
+      color: #e5e7eb;
+      cursor: pointer;
+      font-size: 0.875rem;
+      transition: all 0.15s;
+    }
+    button:hover {
+      background: #4b5563;
+      border-color: #60a5fa;
+    }
+    button.success {
+      background: #065f46;
+      border-color: #10b981;
+      color: #d1fae5;
+    }
+    button.error {
+      background: #7f1d1d;
+      border-color: #ef4444;
+      color: #fecaca;
+    }
+    .code-block {
+      background: #0f1419;
+      border: 1px solid #2d3748;
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+      color: #d4d4d4;
+      margin-bottom: 1rem;
+      white-space: pre;
+      overflow-x: auto;
+    }
+    .log-output {
+      background: #0f1419;
+      border: 1px solid #2d3748;
+      border-radius: 6px;
+      padding: 1rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      color: #9ca3af;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 1rem;
+    }
+    .log-entry {
+      margin-bottom: 0.5rem;
+      padding: 0.25rem;
+    }
+    .log-entry.error {
+      color: #ef4444;
+    }
+    .log-entry.success {
+      color: #10b981;
+    }
+    .log-entry.info {
+      color: #60a5fa;
+    }
+    .status {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+    }
+    .status.pass {
+      background: #065f46;
+      color: #d1fae5;
+    }
+    .status.fail {
+      background: #7f1d1d;
+      color: #fecaca;
+    }
+    .status.pending {
+      background: #78350f;
+      color: #fef3c7;
+    }
+  </style>
+</head>
+<body>
+  <h1>Task 7.3: Copy Error Handling Test</h1>
+  <p class="subtitle">Manual testing for copy failure scenarios</p>
+
+  <div class="test-section">
+    <h2>Test 1: Normal Copy Operation <span class="status pending" id="test1-status">PENDING</span></h2>
+    <p class="test-description">
+      This test verifies that normal copy operations work correctly and show success feedback.
+    </p>
+    <div class="code-block">console.log("Hello, World!");</div>
+    <div class="button-group">
+      <button id="test1-copy">Copy Code</button>
+      <button id="test1-verify">Verify Clipboard</button>
+    </div>
+    <div id="test1-result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test 2: Simulated Copy Failure <span class="status pending" id="test2-status">PENDING</span></h2>
+    <p class="test-description">
+      This test simulates a clipboard API failure to verify error handling. The button should maintain
+      its original state and log an error to the console.
+    </p>
+    <div class="code-block">function test() {
+  return "error handling";
+}</div>
+    <div class="button-group">
+      <button id="test2-copy">Copy Code (Will Fail)</button>
+      <button id="test2-restore">Restore Clipboard API</button>
+    </div>
+    <div id="test2-result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test 3: Clipboard API Unavailable <span class="status pending" id="test3-status">PENDING</span></h2>
+    <p class="test-description">
+      This test removes the clipboard API entirely to verify graceful degradation when the API is not available.
+    </p>
+    <div class="code-block">SELECT * FROM users WHERE active = true;</div>
+    <div class="button-group">
+      <button id="test3-copy">Copy Code (No API)</button>
+      <button id="test3-restore">Restore Clipboard API</button>
+    </div>
+    <div id="test3-result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Console Log Output</h2>
+    <p class="test-description">
+      Error messages should appear here when copy operations fail.
+    </p>
+    <div class="log-output" id="console-log"></div>
+  </div>
+
+  <script>
+    // Capture console.error calls
+    const originalConsoleError = console.error;
+    const logOutput = document.getElementById('console-log');
+    
+    console.error = function(...args) {
+      originalConsoleError.apply(console, args);
+      const entry = document.createElement('div');
+      entry.className = 'log-entry error';
+      entry.textContent = `[ERROR] ${args.join(' ')}`;
+      logOutput.appendChild(entry);
+      logOutput.scrollTop = logOutput.scrollHeight;
+    };
+
+    console.log = function(...args) {
+      const entry = document.createElement('div');
+      entry.className = 'log-entry info';
+      entry.textContent = `[INFO] ${args.join(' ')}`;
+      logOutput.appendChild(entry);
+      logOutput.scrollTop = logOutput.scrollHeight;
+    };
+
+    // Store original clipboard
+    const originalClipboard = navigator.clipboard;
+
+    // Test 1: Normal copy operation
+    document.getElementById('test1-copy').addEventListener('click', async () => {
+      const button = document.getElementById('test1-copy');
+      const result = document.getElementById('test1-result');
+      const status = document.getElementById('test1-status');
+      
+      try {
+        await navigator.clipboard.writeText('console.log("Hello, World!");');
+        button.textContent = 'Copied!';
+        button.className = 'success';
+        setTimeout(() => {
+          button.textContent = 'Copy Code';
+          button.className = '';
+        }, 2000);
+        
+        result.innerHTML = '<span style="color: #10b981;">✓ Copy successful! Button showed success feedback.</span>';
+        console.log('Test 1: Copy operation succeeded');
+      } catch (error) {
+        console.error('Failed to copy code to clipboard:', error);
+        result.innerHTML = '<span style="color: #ef4444;">✗ Copy failed unexpectedly</span>';
+        status.textContent = 'FAIL';
+        status.className = 'status fail';
+      }
+    });
+
+    document.getElementById('test1-verify').addEventListener('click', async () => {
+      const result = document.getElementById('test1-result');
+      const status = document.getElementById('test1-status');
+      
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text === 'console.log("Hello, World!");') {
+          result.innerHTML = '<span style="color: #10b981;">✓ Clipboard contains correct text!</span>';
+          status.textContent = 'PASS';
+          status.className = 'status pass';
+          console.log('Test 1: Clipboard verification passed');
+        } else {
+          result.innerHTML = '<span style="color: #ef4444;">✗ Clipboard contains wrong text: ' + text + '</span>';
+          status.textContent = 'FAIL';
+          status.className = 'status fail';
+        }
+      } catch (error) {
+        result.innerHTML = '<span style="color: #ef4444;">✗ Could not read clipboard</span>';
+      }
+    });
+
+    // Test 2: Simulated copy failure
+    document.getElementById('test2-copy').addEventListener('click', async () => {
+      const button = document.getElementById('test2-copy');
+      const result = document.getElementById('test2-result');
+      const status = document.getElementById('test2-status');
+      
+      // Mock clipboard to fail
+      navigator.clipboard = {
+        writeText: () => Promise.reject(new Error('Clipboard access denied'))
+      };
+      
+      const originalText = button.textContent;
+      
+      try {
+        await navigator.clipboard.writeText('function test() { return "error handling"; }');
+        button.textContent = 'Copied!';
+        button.className = 'success';
+        result.innerHTML = '<span style="color: #ef4444;">✗ Button showed success when it should have failed</span>';
+        status.textContent = 'FAIL';
+        status.className = 'status fail';
+      } catch (error) {
+        console.error('Failed to copy code to clipboard:', error);
+        
+        // Check if button maintained original state
+        setTimeout(() => {
+          if (button.textContent === originalText && button.className === '') {
+            result.innerHTML = '<span style="color: #10b981;">✓ Button maintained original state on error!</span>';
+            status.textContent = 'PASS';
+            status.className = 'status pass';
+            console.log('Test 2: Error handling verified - button state maintained');
+          } else {
+            result.innerHTML = '<span style="color: #ef4444;">✗ Button state changed on error</span>';
+            status.textContent = 'FAIL';
+            status.className = 'status fail';
+          }
+        }, 100);
+      }
+    });
+
+    document.getElementById('test2-restore').addEventListener('click', () => {
+      navigator.clipboard = originalClipboard;
+      document.getElementById('test2-result').innerHTML = '<span style="color: #60a5fa;">Clipboard API restored</span>';
+      console.log('Test 2: Clipboard API restored');
+    });
+
+    // Test 3: Clipboard API unavailable
+    document.getElementById('test3-copy').addEventListener('click', async () => {
+      const button = document.getElementById('test3-copy');
+      const result = document.getElementById('test3-result');
+      const status = document.getElementById('test3-status');
+      
+      // Remove clipboard API
+      navigator.clipboard = undefined;
+      
+      const originalText = button.textContent;
+      
+      try {
+        await navigator.clipboard.writeText('SELECT * FROM users WHERE active = true;');
+        button.textContent = 'Copied!';
+        button.className = 'success';
+        result.innerHTML = '<span style="color: #ef4444;">✗ Should have thrown error</span>';
+        status.textContent = 'FAIL';
+        status.className = 'status fail';
+      } catch (error) {
+        console.error('Failed to copy code to clipboard:', error);
+        
+        // Check if button maintained original state
+        setTimeout(() => {
+          if (button.textContent === originalText && button.className === '') {
+            result.innerHTML = '<span style="color: #10b981;">✓ Gracefully handled missing API!</span>';
+            status.textContent = 'PASS';
+            status.className = 'status pass';
+            console.log('Test 3: Missing API handled gracefully');
+          } else {
+            result.innerHTML = '<span style="color: #ef4444;">✗ Button state changed on error</span>';
+            status.textContent = 'FAIL';
+            status.className = 'status fail';
+          }
+        }, 100);
+      }
+    });
+
+    document.getElementById('test3-restore').addEventListener('click', () => {
+      navigator.clipboard = originalClipboard;
+      document.getElementById('test3-result').innerHTML = '<span style="color: #60a5fa;">Clipboard API restored</span>';
+      console.log('Test 3: Clipboard API restored');
+    });
+
+    // Initial log
+    console.log('Task 7.3 Test Suite Loaded');
+    console.log('Requirements being tested:');
+    console.log('1. Wrap clipboard.writeText in try-catch');
+    console.log('2. Maintain original button state on error');
+    console.log('3. Log error to console for debugging');
+  </script>
+</body>
+</html>

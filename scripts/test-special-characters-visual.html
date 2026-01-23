@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Special Characters Visual Test - Task 8.3</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'navy-950': '#0a0e1a',
+            'navy-900': '#0f1420',
+            'navy-800': '#1a1f2e',
+            'navy-700': '#252b3d',
+            'text-primary': '#e5e7eb',
+            'text-secondary': '#9ca3af',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background: #0a0e1a;
+      color: #e5e7eb;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .code-container {
+      max-height: 500px;
+      overflow-y: auto;
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0.2);
+    }
+    .code-container::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    .code-container::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .code-container::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+    }
+    pre {
+      margin: 0;
+      padding: 1rem;
+      background: transparent;
+      font-size: 0.875rem;
+      line-height: 1.625;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      color: #d4d4d4;
+      white-space: pre;
+    }
+    .test-section {
+      margin-bottom: 2rem;
+    }
+    .test-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #60a5fa;
+    }
+    .test-description {
+      font-size: 0.875rem;
+      color: #9ca3af;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body class="p-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-2">Special Characters Visual Test</h1>
+    <p class="text-text-secondary mb-8">Task 8.3: Verify special characters are preserved and rendered correctly</p>
+
+    <!-- Test 1: Unicode Emojis -->
+    <div class="test-section">
+      <div class="test-title">1. Unicode Emojis</div>
+      <div class="test-description">Should display various emojis correctly</div>
+      <div class="rounded-lg overflow-hidden border border-navy-700 bg-navy-950/80 backdrop-blur-sm">
+        <div class="flex items-center justify-between px-4 py-2 bg-navy-950/60 border-b border-navy-700">
+          <span class="text-xs font-semibold text-text-secondary uppercase tracking-wide">JavaScript</span>
+        </div>
+        <div class="code-container">
+          <pre><code>🚀 Rocket launch
+💻 Computer
+🎉 Party
+✨ Sparkles
+🔥 Fire
+❤️ Heart
+👍 Thumbs up
+🌟 Star</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Test 2: Mathematical Symbols -->
+    <div class="test-section">
+      <div class="test-title">2. Mathematical Symbols</div>
+      <div class="test-description">Should display mathematical notation correctly</div>
+      <div class="rounded-lg overflow-hidden border border-navy-700 bg-navy-950/80 backdrop-blur-sm">
+        <div class="flex items-center justify-between px-4 py-2 bg-navy-950/60 border-b border-navy-700">
+          <span class="text-xs font-semibold text-text-secondary uppercase tracking-wide">Python</span>
+        </div>
+        <div class="code-container">
+          <pre><code># Mathematical symbols
+∑ Sum
+∫ Integral
+√ Square root
+∞ Infinity
+≠ Not equal
+≤ Less than or equal
+≥ Greater than or equal
+± Plus-minus
+× Multiply
+÷ Divide</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Test 3: Greek Letters -->
+    <div class="test-section">
+      <div class="test-title">3. Greek Letters</div>
+      <div class="test-description">Should display Greek alphabet correctly</div>
+      <div class="rounded-lg overflow-hidden border border-navy-700 bg-navy-950/80 backdrop-blur-sm">
+        <div class="flex items-center justify-between px-4 py-2 bg-navy-950/60 border-b border-navy-700">
+          <span class="text-xs font-semibold text-text-secondary uppercase tracking-wide">JavaScript</span>
+        </div>
+        <div class="code-container">
+          <pre><code>// Greek letters in variable names
+const α = 1.5;
+const β = 2.0;
+const γ = 3.14;
+const δ = 0.5;
+const π = Math.PI;
+const Ω = 1000;</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Test 4: CJK Characters -->
+    <div class="test-section">
+      <div class="test-title">4. CJK Characters (Chinese, Japanese, Korean)</div>
+      <div class="test-description">Should display Asian characters correctly</div>
+      <div class="rounded-lg overflow-hidden border border-navy-700 bg-navy-950/80 backdrop-blur-sm">
+        <div class="flex items-center justify-between px-4 py-2 bg-navy-950/60 border-b border-navy-700">
+          <span class="text-xs font-semibold text-text-secondary uppercase tracking-wide">JavaScript</span>
+        </div>
+        <div class="code-container">
+          <pre><code>// Chinese
+const 你好 = "Hello";
+const 世界 = "World";
+
+// Japanese
+const こんにちは = "Hello";
+const テスト = "Test";
+
+// Korean
+const 안녕하세요 = "Hello";
+const 테스트 = "Test";</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Test 5: Box Drawing Characters -->
+    <div class="test-section">
+      <div class="test-title">5. Box Drawing Characters</div>
+      <div class="test-description">Should display ASCII art and tables correctly</div>
+      <div class="rounded-lg overflow-hidden border border-navy-700 bg-navy-950/80 backdrop-blur-sm">
+        <div class="flex items-center justify-between px-4 py-2 bg-navy-950/60 border-b border-navy-700">
+          <span class="text-xs font-semibold text-text-secondary uppercase tracking-wide">Text</span>
+        </div>
+        <div class="code-container">
+          <pre><code>┌─────────┬─────────┬─────────┐
+│ Header1 │ Header2 │ Header3 │
+├─────────┼─────────┼─────────┤
+│ Cell 1  │ Cell 2  │ Cell 3  │
+│ Cell 4  │ Cell 5  │ Cell 6  │
+└─────────┴─────────┴─────────┘
+
+Tree structure:
+├── src/
+│   ├── components/
+│   │   └── CodeBlock.tsx
+│   └── utils/
+│       └── markdown.tsx
+└── scripts/
+    └── test.ts</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Test 6: Special Symbols -->
+    <div class="test-section">
+      <div class="test-title">6. Special Symbols</div>
+      <div class="test-description">Should display copyright, trademark, and currency symbols</div>
+      <div class="rounded-lg overflow-hidden border border-navy-700 bg-navy-950/80 backdrop-blur-sm">
+        <div class="flex items-center justify-between px-4 py-2 bg-navy-950/60 border-b border-navy-700">
+          <span class="text-xs font-semibold text-text-secondary uppercase tracking-wide">JavaScript</span>
+        </div>
+        <div class="code-container">
+          <pre><code>// Copyright and trademarks
+© 2024 Company Name
+® Registered Trademark
+™ Trademark Symbol
+
+// Currency symbols
+const price_usd = "$100";
+const price_eur = "€85";
+const price_gbp = "£75";
+const price_jpy = "¥10000";</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Test 7: Arrows and Symbols -->
+    <div class="test-section">
+      <div class="test-title">7. Arrows and Directional Symbols</div>
+      <div class="test-description">Should display arrows and directional indicators</div>
+      <div class="rounded-lg overflow-hidden border border-navy-700 bg-navy-950/80 backdrop-blur-sm">
+        <div class="flex items-center justify-between px-4 py-2 bg-navy-950/60 border-b border-navy-700">
+          <span class="text-xs font-semibold text-text-secondary uppercase tracking-wide">Text</span>
+        </div>
+        <div class="code-container">
+          <pre><code>Flow diagram:
+Start → Process → Decision
+         ↓           ↓
+      Success ← ← Failure
+         ↓
+        End
+
+Arrows:
+→ Right arrow
+← Left arrow
+↑ Up arrow
+↓ Down arrow
+⇒ Double right arrow
+⇐ Double left arrow
+↔ Left-right arrow
+⇔ Double left-right arrow</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Test 8: Mixed Special Characters -->
+    <div class="test-section">
+      <div class="test-title">8. Mixed Special Characters</div>
+      <div class="test-description">Should handle complex mix of special characters</div>
+      <div class="rounded-lg overflow-hidden border border-navy-700 bg-navy-950/80 backdrop-blur-sm">
+        <div class="flex items-center justify-between px-4 py-2 bg-navy-950/60 border-b border-navy-700">
+          <span class="text-xs font-semibold text-text-secondary uppercase tracking-wide">JavaScript</span>
+        </div>
+        <div class="code-container">
+          <pre><code>// 🚀 Complex example with mixed characters
+const π = 3.14159;
+const café = "naïve résumé";
+const 你好世界 = "Hello World";
+
+// © 2024 → ∞
+function calculateΔ(α, β) {
+  return α + β; // ✨ Magic happens here
+}
+
+/* 
+ * ┌─────────────────┐
+ * │ Über cool! 🎉  │
+ * └─────────────────┘
+ */</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Test 9: Non-ASCII Accented Characters -->
+    <div class="test-section">
+      <div class="test-title">9. Non-ASCII Accented Characters</div>
+      <div class="test-description">Should display accented Latin characters correctly</div>
+      <div class="rounded-lg overflow-hidden border border-navy-700 bg-navy-950/80 backdrop-blur-sm">
+        <div class="flex items-center justify-between px-4 py-2 bg-navy-950/60 border-b border-navy-700">
+          <span class="text-xs font-semibold text-text-secondary uppercase tracking-wide">JavaScript</span>
+        </div>
+        <div class="code-container">
+          <pre><code>// French
+const café = "Café au lait";
+const naïve = "Naïve approach";
+
+// German
+const über = "Über alles";
+const größe = "Größe matters";
+
+// Spanish
+const niño = "El niño";
+const señor = "Señor García";
+
+// Portuguese
+const ação = "Ação rápida";
+const coração = "Coração";</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Test 10: Tab Characters -->
+    <div class="test-section">
+      <div class="test-title">10. Tab Characters</div>
+      <div class="test-description">Should display tabs with consistent spacing</div>
+      <div class="rounded-lg overflow-hidden border border-navy-700 bg-navy-950/80 backdrop-blur-sm">
+        <div class="flex items-center justify-between px-4 py-2 bg-navy-950/60 border-b border-navy-700">
+          <span class="text-xs font-semibold text-text-secondary uppercase tracking-wide">JavaScript</span>
+        </div>
+        <div class="code-container">
+          <pre><code>function example() {
+	if (true) {
+		console.log("Indented with tabs");
+		return {
+			key: "value",
+			nested: {
+				deep: "data"
+			}
+		};
+	}
+}</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 p-4 bg-navy-800 rounded-lg border border-navy-700">
+      <h2 class="text-lg font-semibold mb-2">✅ Verification Checklist</h2>
+      <ul class="space-y-1 text-sm text-text-secondary">
+        <li>✓ All emojis display correctly without replacement characters</li>
+        <li>✓ Mathematical symbols render properly</li>
+        <li>✓ Greek letters are visible and correctly shaped</li>
+        <li>✓ CJK characters (Chinese, Japanese, Korean) display correctly</li>
+        <li>✓ Box drawing characters align properly to form tables/trees</li>
+        <li>✓ Copyright, trademark, and currency symbols are visible</li>
+        <li>✓ Arrows and directional symbols point correctly</li>
+        <li>✓ Mixed special characters work together</li>
+        <li>✓ Accented characters display with proper diacritics</li>
+        <li>✓ Tab characters create consistent indentation</li>
+        <li>✓ No character encoding errors or replacement characters (�)</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

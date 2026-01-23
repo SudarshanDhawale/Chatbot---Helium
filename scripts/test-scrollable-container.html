@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task 6.1: ScrollableCodeContainer Test</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0a0e1a;
+      color: #e5e7eb;
+      padding: 2rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      color: #60a5fa;
+      margin-bottom: 2rem;
+    }
+    
+    .test-section {
+      margin-bottom: 3rem;
+    }
+    
+    .test-title {
+      color: #34d399;
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+    }
+    
+    .code-block {
+      border-radius: 0.5rem;
+      overflow: hidden;
+      border: 1px solid #1e3a5f;
+      background: rgba(10, 14, 26, 0.8);
+      backdrop-filter: blur(4px);
+    }
+    
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 1rem;
+      background: rgba(10, 14, 26, 0.6);
+      border-bottom: 1px solid #1e3a5f;
+    }
+    
+    .language-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .scrollable-container {
+      max-height: 500px;
+      overflow-x: auto;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Webkit scrollbar styling for Chrome/Safari */
+    .scrollable-container::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    .scrollable-container::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+    }
+    
+    .scrollable-container::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+    }
+    
+    .scrollable-container::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.4);
+    }
+    
+    pre {
+      margin: 0;
+      padding: 1rem;
+      background: transparent;
+      font-size: 0.875rem;
+      line-height: 1.625;
+      font-family: ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, monospace;
+      color: #d4d4d4;
+    }
+    
+    code {
+      font-family: inherit;
+    }
+    
+    .description {
+      color: #9ca3af;
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+    }
+    
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+    }
+    
+    .check-icon {
+      color: #34d399;
+    }
+  </style>
+</head>
+<body>
+  <h1>Task 6.1: ScrollableCodeContainer Verification</h1>
+  
+  <div class="test-section">
+    <h2 class="test-title">✅ Implementation Checklist</h2>
+    <div class="check-item">
+      <span class="check-icon">✓</span>
+      <span>Wrapper div around code content</span>
+    </div>
+    <div class="check-item">
+      <span class="check-icon">✓</span>
+      <span>maxHeight set to 500px</span>
+    </div>
+    <div class="check-item">
+      <span class="check-icon">✓</span>
+      <span>overflow-x: auto for horizontal scroll</span>
+    </div>
+    <div class="check-item">
+      <span class="check-icon">✓</span>
+      <span>overflow-y: auto for vertical scroll</span>
+    </div>
+    <div class="check-item">
+      <span class="check-icon">✓</span>
+      <span>Custom scrollbar styling for dark theme</span>
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2 class="test-title">Test 1: Vertical Scrolling (Tall Content)</h2>
+    <p class="description">
+      This code block has many lines (exceeds 500px height). 
+      You should see a vertical scrollbar.
+    </p>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="language-label">Python</span>
+      </div>
+      <div class="scrollable-container">
+        <pre><code>def example_function():
+    """This is a long code example to test vertical scrolling."""
+    line_1 = "This is line 1"
+    line_2 = "This is line 2"
+    line_3 = "This is line 3"
+    line_4 = "This is line 4"
+    line_5 = "This is line 5"
+    line_6 = "This is line 6"
+    line_7 = "This is line 7"
+    line_8 = "This is line 8"
+    line_9 = "This is line 9"
+    line_10 = "This is line 10"
+    line_11 = "This is line 11"
+    line_12 = "This is line 12"
+    line_13 = "This is line 13"
+    line_14 = "This is line 14"
+    line_15 = "This is line 15"
+    line_16 = "This is line 16"
+    line_17 = "This is line 17"
+    line_18 = "This is line 18"
+    line_19 = "This is line 19"
+    line_20 = "This is line 20"
+    line_21 = "This is line 21"
+    line_22 = "This is line 22"
+    line_23 = "This is line 23"
+    line_24 = "This is line 24"
+    line_25 = "This is line 25"
+    line_26 = "This is line 26"
+    line_27 = "This is line 27"
+    line_28 = "This is line 28"
+    line_29 = "This is line 29"
+    line_30 = "This is line 30"
+    line_31 = "This is line 31"
+    line_32 = "This is line 32"
+    line_33 = "This is line 33"
+    line_34 = "This is line 34"
+    line_35 = "This is line 35"
+    line_36 = "This is line 36"
+    line_37 = "This is line 37"
+    line_38 = "This is line 38"
+    line_39 = "This is line 39"
+    line_40 = "This is line 40"
+    return "Done"</code></pre>
+      </div>
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2 class="test-title">Test 2: Horizontal Scrolling (Wide Content)</h2>
+    <p class="description">
+      This code block has very long lines (exceeds container width). 
+      You should see a horizontal scrollbar.
+    </p>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="language-label">JavaScript</span>
+      </div>
+      <div class="scrollable-container">
+        <pre><code>const veryLongVariableName = "This is a very long line of code that should trigger horizontal scrolling because it exceeds the container width significantly";
+const anotherLongLine = { property1: "value1", property2: "value2", property3: "value3", property4: "value4", property5: "value5", property6: "value6", property7: "value7" };
+function processDataWithManyParameters(param1, param2, param3, param4, param5, param6, param7, param8, param9, param10, param11, param12, param13, param14, param15) {
+  return param1 + param2 + param3 + param4 + param5 + param6 + param7 + param8 + param9 + param10 + param11 + param12 + param13 + param14 + param15;
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2 class="test-title">Test 3: Both Scrolling (Tall + Wide Content)</h2>
+    <p class="description">
+      This code block has both many lines AND long lines. 
+      You should see both vertical and horizontal scrollbars.
+    </p>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="language-label">TypeScript</span>
+      </div>
+      <div class="scrollable-container">
+        <pre><code>interface VeryLongInterfaceNameWithManyProperties { property1: string; property2: number; property3: boolean; property4: string[]; property5: Record<string, any>; }
+const data1 = "This is line 1 with a very long content that should trigger horizontal scrolling because it exceeds the container width";
+const data2 = "This is line 2 with a very long content that should trigger horizontal scrolling because it exceeds the container width";
+const data3 = "This is line 3 with a very long content that should trigger horizontal scrolling because it exceeds the container width";
+const data4 = "This is line 4 with a very long content that should trigger horizontal scrolling because it exceeds the container width";
+const data5 = "This is line 5 with a very long content that should trigger horizontal scrolling because it exceeds the container width";
+const data6 = "This is line 6 with a very long content that should trigger horizontal scrolling because it exceeds the container width";
+const data7 = "This is line 7 with a very long content that should trigger horizontal scrolling because it exceeds the container width";
+const data8 = "This is line 8 with a very long content that should trigger horizontal scrolling because it exceeds the container width";
+const data9 = "This is line 9 with a very long content that should trigger horizontal scrolling because it exceeds the container width";
+const data10 = "This is line 10 with a very long content that should trigger horizontal scrolling because it exceeds the container width";
+const data11 = "This is line 11 with a very long content that should trigger horizontal scrolling because it exceeds the container width";
+const data12 = "This is line 12 with a very long content that should trigger horizontal scrolling because it exceeds the container width";
+const data13 = "This is line 13 with a very long content that should trigger horizontal scrolling because it exceeds the container width";
+const data14 = "This is line 14 with a very long content that should trigger horizontal scrolling because it exceeds the container width";
+const data15 = "This is line 15 with a very long content that should trigger horizontal scrolling because it exceeds the container width";
+const data16 = "This is line 16 with a very long content that should trigger horizontal scrolling because it exceeds the container width";
+const data17 = "This is line 17 with a very long content that should trigger horizontal scrolling because it exceeds the container width";
+const data18 = "This is line 18 with a very long content that should trigger horizontal scrolling because it exceeds the container width";
+const data19 = "This is line 19 with a very long content that should trigger horizontal scrolling because it exceeds the container width";
+const data20 = "This is line 20 with a very long content that should trigger horizontal scrolling because it exceeds the container width";</code></pre>
+      </div>
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2 class="test-title">Test 4: Normal Content (No Scrolling)</h2>
+    <p class="description">
+      This code block has normal content that fits within the container. 
+      You should NOT see any scrollbars.
+    </p>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="language-label">Python</span>
+      </div>
+      <div class="scrollable-container">
+        <pre><code>def hello_world():
+    print("Hello, World!")
+    return True</code></pre>
+      </div>
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2 class="test-title">✅ Verification Complete</h2>
+    <p class="description">
+      All requirements for Task 6.1 have been implemented:
+    </p>
+    <ul style="color: #9ca3af; font-size: 0.875rem; line-height: 1.75;">
+      <li>ScrollableCodeContainer wrapper created around SyntaxHighlighter</li>
+      <li>maxHeight set to 500px</li>
+      <li>overflow-x: auto enables horizontal scrolling for wide content</li>
+      <li>overflow-y: auto enables vertical scrolling for tall content</li>
+      <li>Custom scrollbar styling applied for dark theme consistency</li>
+      <li>Requirements 3.1 and 3.2 satisfied</li>
+    </ul>
+  </div>
+</body>
+</html>

@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { formatFileSize } from '@/utils/format';
 import type { ChatMessage } from '@/types/chat';
 import { ImagePreviewModal } from './ImagePreviewModal';
@@ -13,41 +13,90 @@ import { ImagePreviewModal } from './ImagePreviewModal';
 function getFileIcon(fileName: string) {
   const ext = fileName.split('.').pop()?.toLowerCase() || '';
   
+  // PDF files
   if (['pdf'].includes(ext)) {
     return (
-      <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 24 24">
+      <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
         <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
       </svg>
     );
   }
   
+  // Image files
   if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp'].includes(ext)) {
     return (
-      <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M9,2V8H15V2H9M11,4H13V6H11V4M2,12V20A2,2 0 0,0 4,22H20A2,2 0 0,0 22,20V12H2M20,20H4V14H20V20Z" />
+      <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M8.5,13.5L11,16.5L14.5,12L19,18H5M21,19V5C21,3.89 20.1,3 19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19Z" />
       </svg>
     );
   }
   
+  // Word documents
+  if (['doc', 'docx'].includes(ext)) {
+    return (
+      <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M15,18V16H13V18H15M15,14V12H13V14H15M11,18V16H9V18H11M11,14V12H9V14H11Z" />
+      </svg>
+    );
+  }
+  
+  // Excel spreadsheets
+  if (['xls', 'xlsx', 'csv'].includes(ext)) {
+    return (
+      <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,19L15,15H13V11H11V15H9L12,19Z" />
+      </svg>
+    );
+  }
+  
+  // PowerPoint presentations
+  if (['ppt', 'pptx'].includes(ext)) {
+    return (
+      <svg className="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M10,11H13A2,2 0 0,1 15,13V15A2,2 0 0,1 13,17H10V11M11,12V16H13A1,1 0 0,0 14,15V13A1,1 0 0,0 13,12H11Z" />
+      </svg>
+    );
+  }
+  
+  // Text files
+  if (['txt', 'text'].includes(ext)) {
+    return (
+      <svg className="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M10,19H8V17H10V19M14,19H10V17H14V19M18,19H14V17H18V19M10,15H8V13H10V15M14,15H10V13H14V15M18,15H14V13H18V15Z" />
+      </svg>
+    );
+  }
+  
+  // Markdown files
   if (['md', 'markdown'].includes(ext)) {
     return (
-      <svg className="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+      <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
         <path d="M14,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V9L14,3M19,19H5V5H13V10H19V19Z" />
       </svg>
     );
   }
   
-  if (['html', 'htm'].includes(ext)) {
+  // Code files
+  if (['js', 'jsx', 'ts', 'tsx', 'py', 'java', 'cpp', 'c', 'html', 'css', 'json', 'xml'].includes(ext)) {
     return (
-      <svg className="w-5 h-5 text-orange-400" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M12,18L16,14H13V10H11V14H8M19,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3Z" />
+      <svg className="w-5 h-5 text-purple-500" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M9.5,16.5L11,15L9.5,13.5L8,15L9.5,16.5M12,15L13.5,13.5L15,15L16.5,13.5L15,12L16.5,10.5L15,9L13.5,10.5L12,9L10.5,10.5L12,12L10.5,13.5L12,15Z" />
+      </svg>
+    );
+  }
+  
+  // Archive files
+  if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) {
+    return (
+      <svg className="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,19L15,16H13V12H11V16H9L12,19Z" />
       </svg>
     );
   }
   
   // Default file icon
   return (
-    <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
     </svg>
   );
@@ -59,6 +108,162 @@ interface FileListProps {
   projectId: string | null;
 }
 
+// Component to handle file preview/download with API key authentication
+function ImagePreview({ 
+  file, 
+  threadId, 
+  projectId, 
+  onPreview 
+}: { 
+  file: { file_id: string; file_name: string; file_size: number };
+  threadId: string | null;
+  projectId: string | null;
+  onPreview: (imageUrl: string) => void;
+}) {
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  // Check if file is an image
+  const isImage = (fileName: string): boolean => {
+    const ext = fileName.split('.').pop()?.toLowerCase() || '';
+    return ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp'].includes(ext);
+  };
+
+  const isImageFile = isImage(file.file_name);
+
+  useEffect(() => {
+    if (!threadId || !projectId) {
+      setError(true);
+      setLoading(false);
+      return;
+    }
+
+    // Only fetch if it's an image
+    if (!isImageFile) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchImage = async () => {
+      try {
+        const params = new URLSearchParams({
+          thread_id: threadId,
+          project_id: projectId,
+        });
+        const apiKey = localStorage.getItem('helium_api_key');
+        const headers: HeadersInit = apiKey ? { 'x-helium-api-key': apiKey } : {};
+        
+        const response = await fetch(
+          `/api/files/${encodeURIComponent(file.file_id)}?${params.toString()}`,
+          { headers }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to load image');
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        setImageUrl(url);
+        setLoading(false);
+      } catch (err) {
+        setError(true);
+        setLoading(false);
+      }
+    };
+
+    fetchImage();
+
+    // Cleanup
+    return () => {
+      if (imageUrl) {
+        window.URL.revokeObjectURL(imageUrl);
+      }
+    };
+  }, [file.file_id, threadId, projectId, isImageFile]);
+
+  const handleClick = async () => {
+    if (isImageFile && imageUrl && !loading && !error) {
+      onPreview(imageUrl);
+    } else if (!isImageFile && threadId && projectId) {
+      // Download non-image files
+      try {
+        const params = new URLSearchParams({
+          thread_id: threadId,
+          project_id: projectId,
+        });
+        const apiKey = localStorage.getItem('helium_api_key');
+        const headers: HeadersInit = apiKey ? { 'x-helium-api-key': apiKey } : {};
+        
+        const response = await fetch(
+          `/api/files/${encodeURIComponent(file.file_id)}?${params.toString()}`,
+          { headers }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to download file');
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.file_name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      } catch (err) {
+        alert(`Failed to download file: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
+    }
+  };
+
+  if (loading && isImageFile) {
+    return (
+      <button
+        disabled
+        className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 border border-gray-300 rounded-full text-sm opacity-50 cursor-not-allowed"
+      >
+        <div className="w-4 h-4 border-2 border-gray-400 border-t-blue-500 rounded-full animate-spin" />
+        <span className="font-medium text-gray-900 truncate max-w-[200px]">
+          {file.file_name}
+        </span>
+      </button>
+    );
+  }
+
+  if (error && isImageFile) {
+    return (
+      <button
+        disabled
+        className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 border border-gray-300 rounded-full text-sm opacity-50 cursor-not-allowed"
+      >
+        {getFileIcon(file.file_name)}
+        <span className="font-medium text-gray-900 truncate max-w-[200px]">
+          {file.file_name}
+        </span>
+      </button>
+    );
+  }
+
+  return (
+    <button
+      onClick={handleClick}
+      className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-full text-sm transition-colors"
+    >
+      {getFileIcon(file.file_name)}
+      <span className="font-medium text-gray-900 truncate max-w-[200px]">
+        {file.file_name}
+      </span>
+      <span className="text-xs text-gray-500">
+        {formatFileSize(file.file_size)}
+      </span>
+    </button>
+  );
+}
+
 export function FileList({ files, threadId, projectId }: FileListProps) {
   const [downloading, setDownloading] = useState<Set<string>>(new Set());
   const [previewImage, setPreviewImage] = useState<{
@@ -67,10 +272,7 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
     fileId: string;
   } | null>(null);
 
-  console.log('FileList rendering with files:', files);
-
   if (!files || files.length === 0) {
-    console.log('FileList: No files to display');
     return null;
   }
 
@@ -80,9 +282,26 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
     return ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp'].includes(ext);
   };
 
+  // Check if file is a video
+  const isVideoFile = (fileName: string): boolean => {
+    const ext = fileName.split('.').pop()?.toLowerCase() || '';
+    return ['mp4', 'webm', 'ogg', 'mov', 'avi'].includes(ext);
+  };
+
+  // Check if file is audio
+  const isAudioFile = (fileName: string): boolean => {
+    const ext = fileName.split('.').pop()?.toLowerCase() || '';
+    return ['mp3', 'wav', 'ogg', 'aac', 'm4a'].includes(ext);
+  };
+
+  // Check if file is a PDF
+  const isPDFFile = (fileName: string): boolean => {
+    const ext = fileName.split('.').pop()?.toLowerCase() || '';
+    return ext === 'pdf';
+  };
+
   const handleFileClick = async (file: { file_id: string; file_name: string }) => {
     if (!threadId || !projectId) {
-      console.error('Thread ID or Project ID not available');
       return;
     }
 
@@ -94,7 +313,11 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
           thread_id: threadId,
           project_id: projectId,
         });
-        const response = await fetch(`/api/files/${encodeURIComponent(file.file_id)}?${params.toString()}`);
+        const apiKey = localStorage.getItem('helium_api_key');
+        const headers: HeadersInit = apiKey ? { 'x-helium-api-key': apiKey } : {};
+        const response = await fetch(`/api/files/${encodeURIComponent(file.file_id)}?${params.toString()}`, {
+          headers,
+        });
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ error: 'Failed to load image' }));
@@ -110,7 +333,6 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
           fileId: file.file_id,
         });
       } catch (error) {
-        console.error('Error loading image:', error);
         alert(`Failed to load image: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
       return;
@@ -118,7 +340,6 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
 
     // For non-image files, download directly
     if (!threadId || !projectId) {
-      console.error('Thread ID or Project ID not available');
       return;
     }
 
@@ -135,7 +356,11 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
         thread_id: threadId,
         project_id: projectId,
       });
-      const response = await fetch(`/api/files/${encodeURIComponent(file.file_id)}?${params.toString()}`);
+      const apiKey = localStorage.getItem('helium_api_key');
+      const headers: HeadersInit = apiKey ? { 'x-helium-api-key': apiKey } : {};
+      const response = await fetch(`/api/files/${encodeURIComponent(file.file_id)}?${params.toString()}`, {
+        headers,
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Failed to download file' }));
@@ -154,7 +379,6 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error downloading file:', error);
       alert(`Failed to download file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setDownloading((prev) => {
@@ -167,7 +391,6 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
 
   const handleDownload = async (fileId: string, fileName: string) => {
     if (!threadId || !projectId) {
-      console.error('Thread ID or Project ID not available');
       return;
     }
 
@@ -184,7 +407,11 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
         thread_id: threadId,
         project_id: projectId,
       });
-      const response = await fetch(`/api/files/${encodeURIComponent(fileId)}?${params.toString()}`);
+      const apiKey = localStorage.getItem('helium_api_key');
+      const headers: HeadersInit = apiKey ? { 'x-helium-api-key': apiKey } : {};
+      const response = await fetch(`/api/files/${encodeURIComponent(fileId)}?${params.toString()}`, {
+        headers,
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Failed to download file' }));
@@ -203,7 +430,6 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error downloading file:', error);
       alert(`Failed to download file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setDownloading((prev) => {
@@ -224,56 +450,27 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
 
   return (
     <>
-      <div className="space-y-2">
-      <div className="text-xs font-semibold text-gray-400 mb-2 flex items-center gap-2">
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-          />
-        </svg>
-        Related Files:
-      </div>
-      {files.map((file) => {
-        const isDownloading = downloading.has(file.file_id);
-        return (
-          <button
-            key={file.file_id}
-            onClick={() => handleFileClick(file)}
-            disabled={isDownloading || !threadId || !projectId}
-            className="w-full flex items-center justify-between bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-3 text-sm text-gray-200 hover:bg-gray-800/70 hover:border-gray-600 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed group"
-          >
-            <div className="flex items-center gap-3 min-w-0 flex-1">
-              {isDownloading ? (
-                <svg
-                  className="w-5 h-5 animate-spin text-blue-400 flex-shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
-                </svg>
-              ) : (
-                <span className="flex-shrink-0">{getFileIcon(file.file_name)}</span>
-              )}
-              <span className="font-mono font-medium text-gray-100 group-hover:text-white transition-colors duration-150 ease-in-out truncate">{file.file_name}</span>
-            </div>
-            <span className="text-xs font-normal text-gray-400 flex-shrink-0 ml-2">{formatFileSize(file.file_size)}</span>
-          </button>
-        );
-      })}
+      <div className="w-full">
+        {/* Display all files in capsule format */}
+        <div className="flex flex-wrap gap-2">
+          {files.map((file) => {
+            return (
+              <ImagePreview
+                key={file.file_id}
+                file={file}
+                threadId={threadId}
+                projectId={projectId}
+                onPreview={(imageUrl) => {
+                  setPreviewImage({
+                    url: imageUrl,
+                    fileName: file.file_name,
+                    fileId: file.file_id,
+                  });
+                }}
+              />
+            );
+          })}
+        </div>
       </div>
 
       {/* Image Preview Modal */}

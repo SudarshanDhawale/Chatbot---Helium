@@ -10,7 +10,9 @@ export async function GET(
   { params }: { params: Promise<{ threadId: string }> }
 ) {
   try {
-    const apiKey = process.env.HELIUM_API_KEY;
+    // Try to get API key from header first, then fall back to environment variable
+    const headerApiKey = request.headers.get('x-helium-api-key');
+    const apiKey = headerApiKey || process.env.HELIUM_API_KEY;
 
     if (!apiKey) {
       return NextResponse.json(

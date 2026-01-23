@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task 6.2: Scroll Preservation Test</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: #0a0e1a;
+      color: #e5e7eb;
+    }
+    h1 {
+      color: #60a5fa;
+      margin-bottom: 0.5rem;
+    }
+    .description {
+      color: #9ca3af;
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+    .test-section {
+      margin-bottom: 3rem;
+      padding: 1.5rem;
+      background: #1a1f2e;
+      border-radius: 0.5rem;
+      border: 1px solid #2d3748;
+    }
+    .test-title {
+      color: #34d399;
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+    .test-description {
+      color: #9ca3af;
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+    }
+    .expected {
+      background: #1e3a2e;
+      border-left: 4px solid #34d399;
+      padding: 0.75rem;
+      margin: 1rem 0;
+      border-radius: 0.25rem;
+    }
+    .expected-title {
+      color: #34d399;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .expected ul {
+      margin: 0.5rem 0 0 1.5rem;
+      color: #d1d5db;
+    }
+    .expected li {
+      margin: 0.25rem 0;
+    }
+    .code-container {
+      margin-top: 1rem;
+    }
+    .note {
+      background: #1e293b;
+      border-left: 4px solid #60a5fa;
+      padding: 0.75rem;
+      margin: 1rem 0;
+      border-radius: 0.25rem;
+      color: #cbd5e1;
+      font-size: 0.875rem;
+    }
+    .checklist {
+      background: #1a1f2e;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-top: 2rem;
+    }
+    .checklist h3 {
+      color: #60a5fa;
+      margin-top: 0;
+    }
+    .checklist label {
+      display: block;
+      margin: 0.5rem 0;
+      cursor: pointer;
+    }
+    .checklist input[type="checkbox"] {
+      margin-right: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Task 6.2: Scroll Preservation Test</h1>
+  <p class="description">
+    This test verifies that the SyntaxHighlighter is configured correctly to preserve scroll behavior
+    with <code>wrapLongLines={false}</code> and proper PreTag configuration.
+  </p>
+
+  <div class="test-section">
+    <div class="test-title">Test 1: Very Long Single Line</div>
+    <div class="test-description">
+      This test contains a single line of code that is extremely long (200+ characters).
+    </div>
+    <div class="expected">
+      <div class="expected-title">Expected Behavior:</div>
+      <ul>
+        <li>The line should NOT wrap to the next line</li>
+        <li>A horizontal scrollbar should appear</li>
+        <li>You should be able to scroll horizontally to see the entire line</li>
+        <li>The code should maintain its formatting</li>
+      </ul>
+    </div>
+    <div class="code-container">
+      <pre style="background: #1e1e1e; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; max-width: 100%;">
+        <code>const veryLongVariableName = "This is an extremely long string that contains a lot of text and should definitely exceed the width of most screens, forcing a horizontal scroll to appear if line wrapping is disabled correctly";</code>
+      </pre>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <div class="test-title">Test 2: Multiple Long Lines</div>
+    <div class="test-description">
+      This test contains multiple lines, each with varying lengths, some exceeding the container width.
+    </div>
+    <div class="expected">
+      <div class="expected-title">Expected Behavior:</div>
+      <ul>
+        <li>Each long line should remain on a single line (no wrapping)</li>
+        <li>Horizontal scrollbar should appear for the longest line</li>
+        <li>Vertical scrollbar should appear if content exceeds maxHeight (500px)</li>
+        <li>All indentation and formatting should be preserved</li>
+      </ul>
+    </div>
+    <div class="code-container">
+      <pre style="background: #1e1e1e; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; max-width: 100%;">
+        <code>function processUserData(userId, userName, userEmail, userAddress, userPhoneNumber, userPreferences, userSettings, userHistory) {
+  const result = database.query("SELECT * FROM users WHERE id = ? AND name = ? AND email = ? AND address = ? AND phone = ? AND preferences = ? AND settings = ? AND history = ?", [userId, userName, userEmail, userAddress, userPhoneNumber, userPreferences, userSettings, userHistory]);
+  return result;
+}</code>
+      </pre>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <div class="test-title">Test 3: Code with Tabs and Indentation</div>
+    <div class="test-description">
+      This test verifies that tabs and indentation are preserved correctly.
+    </div>
+    <div class="expected">
+      <div class="expected-title">Expected Behavior:</div>
+      <ul>
+        <li>Tabs should render with consistent spacing (4 spaces by default)</li>
+        <li>Indentation levels should be clearly visible</li>
+        <li>Whitespace should be preserved exactly as written</li>
+      </ul>
+    </div>
+    <div class="code-container">
+      <pre style="background: #1e1e1e; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; max-width: 100%;">
+        <code>function example() {
+	if (condition) {
+		const nested = {
+			key: 'value',
+			anotherKey: 'anotherValue'
+		};
+	}
+}</code>
+      </pre>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <div class="test-title">Test 4: Very Tall Code Block</div>
+    <div class="test-description">
+      This test contains many lines to verify vertical scrolling works correctly.
+    </div>
+    <div class="expected">
+      <div class="expected-title">Expected Behavior:</div>
+      <ul>
+        <li>Container should have maxHeight of 500px</li>
+        <li>Vertical scrollbar should appear</li>
+        <li>All lines should be accessible via scrolling</li>
+        <li>Formatting should be preserved throughout</li>
+      </ul>
+    </div>
+    <div class="code-container">
+      <pre style="background: #1e1e1e; padding: 1rem; border-radius: 0.5rem; overflow-y: auto; max-height: 500px; max-width: 100%;">
+        <code>// Line 1
+// Line 2
+// Line 3
+// Line 4
+// Line 5
+// Line 6
+// Line 7
+// Line 8
+// Line 9
+// Line 10
+// Line 11
+// Line 12
+// Line 13
+// Line 14
+// Line 15
+// Line 16
+// Line 17
+// Line 18
+// Line 19
+// Line 20
+// Line 21
+// Line 22
+// Line 23
+// Line 24
+// Line 25
+// Line 26
+// Line 27
+// Line 28
+// Line 29
+// Line 30
+// Line 31
+// Line 32
+// Line 33
+// Line 34
+// Line 35
+// Line 36
+// Line 37
+// Line 38
+// Line 39
+// Line 40</code>
+      </pre>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>Note:</strong> These are static HTML examples. To test the actual React component,
+    you should test it in the running application with real code blocks in chat messages.
+  </div>
+
+  <div class="checklist">
+    <h3>Manual Verification Checklist</h3>
+    <label>
+      <input type="checkbox"> Long lines do NOT wrap and show horizontal scrollbar
+    </label>
+    <label>
+      <input type="checkbox"> Vertical scrollbar appears when content exceeds 500px
+    </label>
+    <label>
+      <input type="checkbox"> Tabs and indentation are preserved correctly
+    </label>
+    <label>
+      <input type="checkbox"> Whitespace is preserved (no extra spaces or line breaks)
+    </label>
+    <label>
+      <input type="checkbox"> Scrolling is smooth and doesn't cause layout issues
+    </label>
+    <label>
+      <input type="checkbox"> Code formatting remains intact during scroll
+    </label>
+  </div>
+
+  <div style="margin-top: 2rem; padding: 1rem; background: #1e3a2e; border-radius: 0.5rem; border: 1px solid #34d399;">
+    <h3 style="color: #34d399; margin-top: 0;">Configuration Applied:</h3>
+    <ul style="color: #d1d5db;">
+      <li><code>wrapLongLines={false}</code> - Prevents line wrapping</li>
+      <li><code>PreTag="div"</code> - Uses div as container element</li>
+      <li><code>overflow-x: auto</code> - Enables horizontal scroll</li>
+      <li><code>overflow-y: auto</code> - Enables vertical scroll</li>
+      <li><code>maxHeight: 500px</code> - Limits vertical height</li>
+    </ul>
+  </div>
+</body>
+</html>

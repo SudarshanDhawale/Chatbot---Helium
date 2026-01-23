@@ -58,133 +58,91 @@ interface ChatMessageProps {
 
 export function ChatMessage({ message, threadId, projectId }: ChatMessageProps) {
   const isUser = message.role === 'user';
-  console.log('ChatMessage render:', message.id, message.role, isUser, message.uploadedFiles);
   const isError = message.status === 'error';
   const isStopped = message.status === 'stopped';
   const isLoading = message.status === 'sending' || message.status === 'running';
-  const showSpinner = !isUser && isLoading;
+  const showSpinner = !isUser && isLoading && !isStopped;
   const [isHovering, setIsHovering] = useState(false);
   const [imagePreview, setImagePreview] = useState<{ url: string; fileName: string } | null>(null);
   const [imageLoadingStates, setImageLoadingStates] = useState<Record<string, boolean>>({});
-  
-  // Clean up object URLs on unmount
-  useEffect(() => {
-    if (isUser && message.uploadedFiles) {
-      return () => {
-        // Clean up object URLs when component unmounts
-        message.uploadedFiles?.forEach((file) => {
-          if (file.url) {
-            URL.revokeObjectURL(file.url);
-          }
-        });
-      };
-    }
-  }, [isUser, message.uploadedFiles]);
 
   return (
     <>
       <style>{loaderStyles}</style>
       <div className={`flex w-full mb-2 animate-fade-in ${isUser ? 'justify-end' : 'justify-start'}`}>
-        <div className="flex flex-col gap-2 max-w-[calc(100%-2rem)] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl">
+        <div 
+          className="flex flex-col gap-2 max-w-[calc(100%-2rem)] sm:max-w-2xl md:max-w-3xl lg:max-w-4xl"
+          onMouseEnter={() => !isUser && setIsHovering(true)}
+          onMouseLeave={() => !isUser && setIsHovering(false)}
+        >
           {/* Message Card */}
           <div
-            className={`rounded-2xl px-5 py-4 backdrop-blur-md ${
+            className={`rounded-2xl px-5 py-4 backdrop-blur-md border ${
               isUser
-                ? 'bg-blue-accent/20 text-text-primary'
+                ? 'bg-[rgba(222, 241, 255, 0.6)] text-gray-900 border-blue-200 shadow-[0_4px_6px_-1px_rgba(156,163,175,0.3),0_2px_4px_-1px_rgba(156,163,175,0.2)]'
                 : isError
-                ? 'bg-red-900/30 text-red-300 border border-red-800'
-                : 'bg-navy-800/60 text-text-primary'
+                ? 'bg-red-50 text-red-700 border-red-300 shadow-[0_4px_6px_-1px_rgba(156,163,175,0.3),0_2px_4px_-1px_rgba(156,163,175,0.2)]'
+                : isStopped
+                ? 'bg-yellow-50 text-yellow-900 border-yellow-300 shadow-[0_4px_6px_-1px_rgba(156,163,175,0.3),0_2px_4px_-1px_rgba(156,163,175,0.2)]'
+                : 'bg-white text-black border-gray-200 shadow-[0_4px_6px_-1px_rgba(156,163,175,0.3),0_2px_4px_-1px_rgba(156,163,175,0.2)]'
             }`}
-            onMouseEnter={() => !isUser && setIsHovering(true)}
-            onMouseLeave={() => !isUser && setIsHovering(false)}
           >
           {/* Message header */}
-          <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center mb-1">
             <span className="text-xs font-semibold opacity-70">
               {isUser ? 'You' : 'HELIUM'}
             </span>
-            {/* Timestamp - hidden on mobile */}
-            <span className="hidden sm:block text-xs font-normal opacity-70">
-              {formatTimestamp(message.timestamp)}
-            </span>
           </div>
 
-          {/* Uploaded images - show at top for user messages */}
+          {/* Uploaded files - show as capsules for user messages */}
           {(() => {
-            console.log('ChatMessage uploadedFiles check:', isUser, message.uploadedFiles, message.uploadedFiles?.length, message.id, message.content);
             return isUser && message.uploadedFiles && message.uploadedFiles.length > 0 && (
               <div className="mb-3 flex flex-wrap gap-2 max-w-full">
                 {message.uploadedFiles.map((file, index) => {
-                  console.log('Rendering uploaded file:', file.name, file.type, file.url);
                   const isImage = file.type.startsWith('image/');
-                  console.log('Is image:', isImage);
                   const imageKey = `${file.name}-${index}`;
+                  
+                  // Generate URL for the file
+                  const fileUrl = file.file_id && threadId && projectId
+                    ? `/api/files/${encodeURIComponent(file.file_id)}?thread_id=${threadId}&project_id=${projectId}`
+                    : file.url;
+
+                  // Get file icon based on type
+                  const getUploadedFileIcon = () => {
+                    if (isImage) {
+                      return (
+                        <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8.5,13.5L11,16.5L14.5,12L19,18H5M21,19V5C21,3.89 20.1,3 19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19Z" />
+                        </svg>
+                      );
+                    }
+                    return (
+                      <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      </svg>
+                    );
+                  };
 
                   return (
-                    <div
+                    <button
                       key={imageKey}
-                      className="relative inline-block rounded-lg overflow-hidden border border-navy-700 max-w-full"
+                      onClick={() => {
+                        if (isImage && fileUrl) {
+                          setImagePreview({ url: fileUrl, fileName: file.name });
+                        }
+                      }}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-full text-sm transition-colors"
                     >
-                      {isImage && file.url ? (
-                        <div className="relative">
-                          {/* Loading state */}
-                          {imageLoadingStates[imageKey] && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-navy-800/80 backdrop-blur-sm">
-                              <div className="flex items-center gap-2">
-                                <div className="w-4 h-4 border-2 border-blue-accent border-t-transparent rounded-full animate-spin"></div>
-                                <span className="text-xs text-text-secondary">Loading...</span>
-                              </div>
-                            </div>
-                          )}
-                          {/* Image with max-width constraint and click-to-expand */}
-                          <img
-                            src={file.url}
-                            alt={file.name}
-                            className="max-w-full max-h-[300px] object-contain cursor-pointer hover:opacity-90 transition-opacity"
-                            style={{ maxWidth: '100%' }}
-                            onLoad={() => {
-                              setImageLoadingStates(prev => ({ ...prev, [imageKey]: false }));
-                            }}
-                            onLoadStart={() => {
-                              setImageLoadingStates(prev => ({ ...prev, [imageKey]: true }));
-                            }}
-                            onClick={() => {
-                              setImagePreview({ url: file.url!, fileName: file.name });
-                            }}
-                            onError={(e) => {
-                              console.log('Image failed to load:', file.url, file.name);
-                              setImageLoadingStates(prev => ({ ...prev, [imageKey]: false }));
-                              // Hide the broken image and show fallback
-                              e.currentTarget.style.display = 'none';
-                              const parent = e.currentTarget.parentElement?.parentElement;
-                              if (parent) {
-                                const fallback = parent.querySelector('.file-fallback');
-                                if (fallback) (fallback as HTMLElement).style.display = 'flex';
-                              }
-                            }}
-                          />
-                        </div>
-                      ) : null}
-                      {/* Fallback for non-images or failed images */}
-                      <div className="file-fallback flex items-center gap-2 bg-navy-800 px-3 py-2 max-w-full" style={{ display: isImage && file.url ? 'none' : 'flex' }}>
-                        <svg
-                          className="w-4 h-4 text-text-secondary flex-shrink-0"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                          />
-                        </svg>
-                        <span className="text-xs font-medium text-text-primary truncate max-w-[150px]">
-                          {file.name}
+                      {getUploadedFileIcon()}
+                      <span className="font-medium text-gray-900 truncate max-w-[200px]">
+                        {file.name}
+                      </span>
+                      {file.size && (
+                        <span className="text-xs text-gray-500">
+                          {(file.size / 1024).toFixed(1)} KB
                         </span>
-                      </div>
-                    </div>
+                      )}
+                    </button>
                   );
                 })}
               </div>
@@ -209,16 +167,6 @@ export function ChatMessage({ message, threadId, projectId }: ChatMessageProps) 
         {/* Message content */}
         <div className="break-words overflow-wrap-anywhere leading-relaxed">
           {!isUser ? renderMarkdown(message.content) : <div className="whitespace-pre-wrap break-words overflow-wrap-anywhere">{message.content}</div>}
-          {/* Loading dots inline with text */}
-          {showSpinner && !isUser && (
-            <span className="inline-flex items-center ml-1">
-              <div className="bouncing-dots">
-                <div></div>
-                <div></div>
-                <div></div>
-              </div>
-            </span>
-          )}
         </div>
 
         {/* Checkmark - only when agent execution is truly completed */}
@@ -228,25 +176,7 @@ export function ChatMessage({ message, threadId, projectId }: ChatMessageProps) 
          message.content.trim().length > 0 &&
          !showSpinner &&
          !isLoading &&
-         (!message.toolExecutions || message.toolExecutions.length === 0 || message.toolExecutions.every(tool => tool.status === 'completed' || tool.status === 'failed')) && (
-          <div className="mt-2 flex items-center gap-1.5 justify-end">
-            <span className="text-xs text-green-400 font-medium">Completed</span>
-            <svg
-              className="w-4 h-4 text-green-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-label="Agent execution completed"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-          </div>
-        )}
+         (!message.toolExecutions || message.toolExecutions.length === 0 || message.toolExecutions.every(tool => tool.status === 'completed' || tool.status === 'failed')) ? null : null}
 
         {/* Error message */}
         {message.error && (
@@ -272,11 +202,10 @@ export function ChatMessage({ message, threadId, projectId }: ChatMessageProps) 
         {/* Code blocks - HIDDEN, user doesn't need to see code */}
         {/* Code blocks are intentionally not displayed */}
 
-        {/* Files */}
+        {/* Files - Always show if present */}
         {(() => {
-          console.log('ChatMessage files check:', message.files, message.files?.length, message.id);
           return message.files && message.files.length > 0 && (
-            <div className="mt-2">
+            <div className="mt-3">
               <FileList
                 files={message.files}
                 threadId={threadId !== undefined ? threadId : null}
@@ -285,6 +214,75 @@ export function ChatMessage({ message, threadId, projectId }: ChatMessageProps) 
             </div>
           );
         })()}
+
+        {/* Timestamp at bottom-left with status on the right */}
+        <div className="mt-2 flex items-center justify-between">
+          <span className="text-[10px] font-normal opacity-50">
+            {formatTimestamp(message.timestamp)}
+          </span>
+          {/* Loading dots or Completed status - only for AI messages */}
+          {!isUser && (
+            <div className="flex items-center gap-1.5">
+              {/* Show loading dots while response is being generated OR any tools are running */}
+              {(message.status === 'sending' || 
+                message.status === 'running' || 
+                (message.toolExecutions && message.toolExecutions.some(tool => tool.status === 'running'))) && (
+                <div className="bouncing-dots scale-50">
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                </div>
+              )}
+              {/* Show stopped indicator */}
+              {isStopped && (
+                <>
+                  <span className="text-[10px] text-yellow-600 font-medium">Agent Stopped</span>
+                  <svg
+                    className="w-3 h-3 text-yellow-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-label="Agent stopped"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </>
+              )}
+              {/* Show completed checkmark ONLY when:
+                  1. Message status is 'completed'
+                  2. Message has content
+                  3. NO tools are running (all tools must be completed or failed)
+              */}
+              {message.status === 'completed' && 
+               message.content && 
+               message.content.trim().length > 0 &&
+               (!message.toolExecutions || !message.toolExecutions.some(tool => tool.status === 'running')) && (
+                <>
+                  <span className="text-[10px] text-green-500 font-medium">Completed</span>
+                  <svg
+                    className="w-3 h-3 text-green-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-label="Agent execution completed"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </>
+              )}
+            </div>
+          )}
+        </div>
         </div>
 
         {/* Message Actions - outside the card, below it - only for assistant messages */}

@@ -230,7 +230,7 @@ export class HeliumClient {
                 return;
               }
             } catch (error) {
-              console.error('Error parsing SSE data:', error, line);
+              // Error parsing SSE data - skip this line
             }
           }
         }

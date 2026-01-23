@@ -15,13 +15,14 @@ export async function GET(
   const { threadId } = await params;
   
   try {
-    const apiKey = process.env.HELIUM_API_KEY;
+    // Try to get API key from header first, fallback to environment variable
+    const apiKey = request.headers.get('x-helium-api-key') || process.env.HELIUM_API_KEY;
 
     if (!apiKey) {
       return new Response(
-        JSON.stringify({ error: 'HELIUM_API_KEY environment variable is not set' }),
+        JSON.stringify({ error: 'API key is required. Please provide your Helium API key.' }),
         {
-          status: 500,
+          status: 401,
           headers: { 'Content-Type': 'application/json' },
         }
       );
@@ -51,8 +52,6 @@ export async function GET(
     });
 
     const heliumUrl = `${BASE_URL}/threads/${threadId}/response?${params.toString()}`;
-
-    console.log('Streaming request to Helium API:', heliumUrl);
 
     // Fetch from Helium API and proxy the stream
     const response = await fetch(heliumUrl, {
@@ -123,12 +122,10 @@ export async function GET(
         };
 
         try {
-          console.log('Starting to proxy stream from Helium API...');
           while (true) {
             const { done, value } = await reader.read();
 
             if (done) {
-              console.log('Helium API stream ended, sending completion event');
               // Process any remaining buffer
               if (buffer.trim() && !closed) {
                 const remainingLines = buffer.split('\n');
@@ -151,7 +148,6 @@ export async function GET(
             }
 
             const chunk = decoder.decode(value, { stream: true });
-            console.log('Received chunk from Helium API:', chunk.length, 'bytes');
             buffer += chunk;
             
             // Process complete lines
@@ -163,7 +159,6 @@ export async function GET(
               // Ensure each SSE event ends with a double newline so clients flush
               if (line.trim()) {
                 // Non-empty line - forward and terminate the event block
-                console.log('Forwarding SSE line:', line.substring(0, 100)); // Log first 100 chars
                 safeEnqueue(encoder.encode(`${line}\n\n`));
               } else if (line === '') {
                 // Explicit empty line separator
@@ -172,7 +167,6 @@ export async function GET(
             }
           }
         } catch (error) {
-          console.error('Error in stream proxy:', error);
           const errorEvent = {
             type: 'error' as const,
             error: getErrorMessage(error),
@@ -196,7 +190,6 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('Error setting up stream:', error);
     return new Response(
       JSON.stringify({ error: getErrorMessage(error) }),
       {

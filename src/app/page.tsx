@@ -5,21 +5,26 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { ChatContainer } from '@/components/chat/ChatContainer';
-import { ConversationSidebar } from '@/components/sidebar/ConversationSidebar';
 import { FileModal } from '@/components/files/FileModal';
 import { ProfileModal } from '@/components/user/ProfileModal';
 import { UserAvatar } from '@/components/user/UserAvatar';
-import Aurora from '@/components/Aurora/Aurora';
+import { Sidebar } from '@/components/sidebar/Sidebar';
+import { ApiKeyModal } from '@/components/auth/ApiKeyModal';
 import { useChat } from '@/hooks/use-chat';
+import { useApiKey } from '@/hooks/use-api-key';
 import { ChatService } from '@/lib/chat-service';
 import { StreamService } from '@/lib/stream-service';
-import { DBClient } from '@/lib/db-client';
+import { StorageService } from '@/lib/storage-client';
 import type { ChatMessage } from '@/types/chat';
 import type { ThreadSummary } from '@/types/thread';
 import type { StreamEvent } from '@/types/stream';
 
 export default function Home() {
+  const router = useRouter();
+  const { apiKey, isLoading: isLoadingApiKey, hasApiKey, saveApiKey } = useApiKey();
+  
   const {
     state,
     addMessage,
@@ -33,7 +38,7 @@ export default function Home() {
     reset,
   } = useChat({
     onError: (error) => {
-      console.error('Chat error:', error);
+      // Error handled by chat hook
     },
   });
 
@@ -45,46 +50,71 @@ export default function Home() {
   const filesRef = useRef<Array<{ file_id: string; file_name: string; file_size: number }>>([]);
   const toolExecutionsRef = useRef<Array<{ function_name: string; description?: string; status: 'running' | 'completed' | 'failed' }>>([]);
 
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Closed by default
   const [threads, setThreads] = useState<ThreadSummary[]>([]);
   const [fileModalOpen, setFileModalOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [avatarDropdownOpen, setAvatarDropdownOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ id: string; email: string; username?: string; full_name?: string } | null>(null);
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const avatarDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Initialize user and load threads from database on mount
+  // Show API key modal if no key is present
+  useEffect(() => {
+    if (!isLoadingApiKey && !hasApiKey) {
+      setShowApiKeyModal(true);
+    }
+  }, [isLoadingApiKey, hasApiKey]);
+
+  const handleValidApiKey = useCallback((key: string) => {
+    saveApiKey(key);
+    setShowApiKeyModal(false);
+  }, [saveApiKey]);
+
+  const handleApiKeyClick = useCallback(() => {
+    setShowApiKeyModal(true);
+  }, []);
+
+  const handleCloseApiKeyModal = useCallback(() => {
+    setShowApiKeyModal(false);
+  }, []);
+
+  // Function to load threads from storage
+  const loadThreads = useCallback(async (userId: string) => {
+    try {
+      const storageThreads = await StorageService.getUserThreads(userId);
+      const threadSummaries: ThreadSummary[] = storageThreads.map(thread => ({
+        threadId: thread.thread_id,
+        projectId: thread.project_id,
+        title: thread.title,
+        lastMessage: '',
+        lastUpdated: new Date(thread.last_message_at),
+        messageCount: thread.message_count,
+      }));
+      setThreads(threadSummaries);
+    } catch (error) {
+      // Error loading threads - fail silently
+    }
+  }, []);
+
+  // Initialize user and load threads from storage on mount
   useEffect(() => {
     const initializeUser = async () => {
       try {
         // Use the actual user email - in production, this would come from authentication
         const defaultEmail = 'smdhawale77@gmail.com';
-        const user = await DBClient.getOrCreateUser(defaultEmail);
+        const user = await StorageService.getOrCreateUser(defaultEmail);
         setCurrentUser(user);
 
-        // Load threads from database
-        const dbThreads = await DBClient.getUserThreads(user.id);
-        
-        // Convert database threads to ThreadSummary format
-        const threadSummaries: ThreadSummary[] = dbThreads.map(thread => ({
-          threadId: thread.thread_id,
-          projectId: thread.project_id,
-          title: thread.title,
-          lastMessage: '', // Will be populated from messages if needed
-          lastUpdated: new Date(thread.last_message_at),
-          messageCount: thread.message_count,
-        }));
-        
-        setThreads(threadSummaries);
+        // Load threads from storage
+        await loadThreads(user.id);
       } catch (error) {
-        console.error('Error initializing user:', error);
-        // Fallback to empty state if database fails
+        // Fallback to empty state if storage fails
         setCurrentUser({ id: 'temp', email: 'user@example.com' });
       }
     };
 
     initializeUser();
-  }, []);
+  }, [loadThreads]);
 
   // Cleanup streaming on unmount
   useEffect(() => {
@@ -137,10 +167,6 @@ export default function Home() {
 
       // Validate before starting
       if (!threadId || !projectId || threadId === 'undefined' || projectId === 'undefined') {
-        console.error('Cannot start streaming: Invalid threadId or projectId', {
-          threadId,
-          projectId,
-        });
         updateMessage(messageId, {
           status: 'error',
           error: 'Invalid thread or project ID',
@@ -165,9 +191,7 @@ export default function Home() {
           timeout: 300,
           includeFileContent: true,
           onEvent: (event: StreamEvent) => {
-            console.log('Received stream event:', event.type, event);
             if (!streamingMessageIdRef.current) {
-              console.warn('No streaming message ID, ignoring event');
               return;
             }
 
@@ -205,8 +229,15 @@ export default function Home() {
                     if (parsed?.content) {
                       textChunk = parsed.content;
                     }
+                    // If parsed successfully but no content field, it's likely tool execution JSON - skip it
                   } catch {
-                    textChunk = event.content;
+                    // If it's not valid JSON, check if it looks like JSON (starts with { or [)
+                    // If so, skip it to avoid showing weird text
+                    const trimmed = event.content.trim();
+                    if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
+                      textChunk = event.content;
+                    }
+                    // Otherwise skip this content as it's likely malformed JSON
                   }
                 }
 
@@ -227,10 +258,9 @@ export default function Home() {
                 }
 
                 if (isComplete) {
-                  updateStatus('completed');
-                  setLoading(false);
+                  // Don't set status to completed here - wait for the final 'complete' event
+                  // Just update the content one last time
                   updateMessage(streamingMessageIdRef.current, {
-                    status: 'completed',
                     content: accumulatedContentRef.current || textChunk,
                     codeBlocks: codeBlocksRef.current.length > 0 ? codeBlocksRef.current : undefined,
                     files: filesRef.current.length > 0 ? filesRef.current : undefined,
@@ -305,19 +335,15 @@ export default function Home() {
 
               case 'file':
                 if (event.file) {
-                  console.log('File event received:', event.file);
                   // Check if file already exists
                   const exists = filesRef.current.some(f => f.file_id === event.file!.file_id);
                   if (!exists) {
-                    console.log('Adding new file:', event.file.file_name);
                     filesRef.current.push(event.file);
                     updateMessage(streamingMessageIdRef.current, {
                       content: accumulatedContentRef.current,
                       codeBlocks: codeBlocksRef.current.length > 0 ? codeBlocksRef.current : undefined,
                       files: filesRef.current.length > 0 ? [...filesRef.current] : undefined,
                     });
-                  } else {
-                    console.log('File already exists:', event.file.file_name);
                   }
                 }
                 break;
@@ -392,21 +418,41 @@ export default function Home() {
                       toolExecutionsRef.current[existingIndex].status = 'completed';
                     }
                     
-                    // Extract files from tool results
-                    console.log('Processing tool result:', functionName, toolExec.result);
-                    if ((functionName === 'create_file' || functionName === 'generate_image' || functionName.includes('image')) && toolExec.result) {
+                    // Extract files from ALL tool results (not just specific tools)
+                    if (toolExec.result) {
                       try {
                         const result = typeof toolExec.result === 'string'
                           ? JSON.parse(toolExec.result)
                           : toolExec.result;
 
-                        console.log('Parsed tool result:', result);
+                        // Check if result has a nested 'file' object (new format)
+                        const fileData = result.file || result;
 
-                        // If result contains file information
-                        if (result.file_id || result.file_path || result.image_url || result.image_path) {
-                          const fileName = toolExec.arguments?.file_path || result.file_path || result.image_path || result.file_name || `generated_${functionName}_${Date.now()}`;
-                          const fileId = result.file_id || result.image_id || `${threadId}:/workspace/${fileName}`;
-                          const fileSize = result.file_size || result.image_size || 0;
+                        // If result contains file information (check for any file-related fields)
+                        if (fileData.file_id || fileData.file_path || fileData.file_name || 
+                            fileData.image_url || fileData.image_path || 
+                            result.file_id || result.file_path || result.file_name) {
+                          
+                          const fileName = fileData.file_name || 
+                                         toolExec.arguments?.file_path || 
+                                         fileData.file_path || 
+                                         fileData.image_path || 
+                                         result.file_name || 
+                                         result.file_path || 
+                                         result.image_path || 
+                                         `generated_${functionName}_${Date.now()}`;
+                          
+                          const fileId = fileData.file_id || 
+                                       result.file_id || 
+                                       fileData.image_id || 
+                                       result.image_id || 
+                                       `${threadId}:/workspace/${fileName}`;
+                          
+                          const fileSize = fileData.file_size || 
+                                         result.file_size || 
+                                         fileData.image_size || 
+                                         result.image_size || 
+                                         0;
 
                           const fileInfo = {
                             file_id: fileId,
@@ -414,12 +460,9 @@ export default function Home() {
                             file_size: fileSize,
                           };
 
-                          console.log('Extracted file info:', fileInfo);
-
                           // Check if file already exists
                           const exists = filesRef.current.some(f => f.file_id === fileInfo.file_id);
                           if (!exists) {
-                            console.log('Adding file to filesRef:', fileInfo);
                             filesRef.current.push(fileInfo);
                             // Update message immediately when file is added
                             updateMessage(streamingMessageIdRef.current, {
@@ -427,14 +470,10 @@ export default function Home() {
                               codeBlocks: codeBlocksRef.current.length > 0 ? codeBlocksRef.current : undefined,
                               files: filesRef.current.length > 0 ? [...filesRef.current] : undefined,
                             });
-                          } else {
-                            console.log('File already exists, skipping:', fileInfo.file_name);
                           }
-                        } else {
-                          console.log('No file information found in result');
                         }
                       } catch (e) {
-                        console.error('Error parsing tool result:', e);
+                        // Error parsing tool result - skip
                       }
                     }
                     
@@ -484,7 +523,6 @@ export default function Home() {
             stopStreaming();
           },
           onComplete: async () => {
-            console.log('Stream completed, fetching final response for files');
             // Stream has naturally ended - fetch final response to get files
             try {
               if (threadId && projectId && streamingMessageIdRef.current) {
@@ -492,8 +530,6 @@ export default function Home() {
                   timeout: 30,
                   includeFileContent: false,
                 });
-
-                console.log('Final response files:', finalResponse.files);
 
                 // Extract files from final response
                 if (finalResponse.files && finalResponse.files.length > 0) {
@@ -503,54 +539,45 @@ export default function Home() {
                     file_size: f.file_size || 0,
                   }));
 
-                  console.log('Processing final response files:', newFiles);
-
                   // Merge with existing files (avoid duplicates)
                   newFiles.forEach(newFile => {
                     const exists = filesRef.current.some(f => f.file_id === newFile.file_id);
                     if (!exists) {
-                      console.log('Adding final file:', newFile);
                       filesRef.current.push(newFile);
-                    } else {
-                      console.log('Final file already exists:', newFile.file_name);
                     }
                   });
 
                   // Update message with all files
-                  console.log('Updating message with final files:', filesRef.current);
                   updateMessage(streamingMessageIdRef.current, {
                     content: accumulatedContentRef.current,
                     codeBlocks: codeBlocksRef.current.length > 0 ? codeBlocksRef.current : undefined,
                     files: filesRef.current.length > 0 ? [...filesRef.current] : undefined,
                   });
-                  console.log('Updated message with final files:', filesRef.current);
-                } else {
-                  console.log('No files in final response');
                 }
 
                 // Save assistant message to database
                 if (currentUser && streamingMessageIdRef.current) {
                   try {
-                    // Get the current message from state
-                    const currentMessage = state.messages.find(m => m.id === streamingMessageIdRef.current);
-                    if (currentMessage) {
-                      await DBClient.saveMessage(threadId, {
-                        ...currentMessage,
-                        content: accumulatedContentRef.current,
-                        status: 'completed',
-                        files: filesRef.current.length > 0 ? filesRef.current : undefined,
-                        codeBlocks: codeBlocksRef.current.length > 0 ? codeBlocksRef.current : undefined,
-                        toolExecutions: toolExecutionsRef.current.length > 0 ? toolExecutionsRef.current : undefined,
-                      });
-                      console.log('Assistant message saved to database');
-                    }
+                    // Construct the message directly from refs instead of relying on state
+                    const assistantMessage: ChatMessage = {
+                      id: streamingMessageIdRef.current,
+                      role: 'assistant',
+                      content: accumulatedContentRef.current,
+                      timestamp: new Date(),
+                      status: 'completed',
+                      files: filesRef.current.length > 0 ? filesRef.current : undefined,
+                      codeBlocks: codeBlocksRef.current.length > 0 ? codeBlocksRef.current : undefined,
+                      toolExecutions: toolExecutionsRef.current.length > 0 ? toolExecutionsRef.current : undefined,
+                    };
+                    
+                    await StorageService.saveMessage(threadId, assistantMessage);
                   } catch (dbError) {
-                    console.error('Error saving assistant message to database:', dbError);
+                    // Error saving to storage - continue anyway
                   }
                 }
               }
             } catch (error) {
-              console.error('Error fetching final files:', error);
+              // Error fetching final files - continue anyway
             }
             
             // Clean up
@@ -567,7 +594,7 @@ export default function Home() {
         stopStreaming();
       });
     },
-    [updateMessage, updateStatus, setLoading, handleError, stopStreaming, state.threadId, state.projectId, currentUser, state.messages]
+    [updateMessage, updateStatus, setLoading, handleError, stopStreaming, state.threadId, state.projectId, currentUser]
   );
 
   const handleSend = useCallback(
@@ -580,12 +607,60 @@ export default function Home() {
         setLoading(true);
         updateStatus('sending');
 
+        // Create task or continue conversation
+        let threadId = state.threadId;
+        let projectId = state.projectId;
+
+        if (!threadId || !projectId) {
+          // New conversation - create task and redirect IMMEDIATELY (before adding messages)
+          const taskResponse = await ChatService.createTask(message, files);
+          threadId = taskResponse.threadId;
+          projectId = taskResponse.projectId;
+
+          // Save thread and user message to database before redirecting
+          if (currentUser) {
+            try {
+              const threadTitle = message.length > 50 ? message.substring(0, 50) + '...' : message;
+              await StorageService.createThread(
+                currentUser.id,
+                threadId,
+                projectId,
+                threadTitle
+              );
+
+              // Save the user message to storage so it appears when thread page loads
+              const uploadedFilesData = files && files.length > 0
+                ? files.map(file => ({
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    url: URL.createObjectURL(file),
+                  }))
+                : undefined;
+
+              await StorageService.saveMessage(threadId, {
+                id: `user-${Date.now()}`,
+                role: 'user',
+                content: message,
+                timestamp: new Date(),
+                status: 'completed',
+                uploadedFiles: uploadedFilesData,
+              });
+            } catch (dbError) {
+              // Error saving thread/message - continue anyway
+            }
+          }
+
+          // Redirect immediately with a flag to indicate new thread
+          router.push(`/project/${projectId}/thread/${threadId}?new=true`);
+          return; // Exit early
+        }
+
+        // Continue conversation (existing thread)
         // Convert files to serializable format with object URLs
         const uploadedFilesData = files && files.length > 0
           ? files.map(file => {
-              console.log('Processing uploaded file:', file.name, file.type, file.size);
               const url = URL.createObjectURL(file);
-              console.log('Created URL for file:', url);
               return {
                 name: file.name,
                 type: file.type,
@@ -596,7 +671,6 @@ export default function Home() {
           : undefined;
 
         // Add user message with uploaded files
-        console.log('Adding user message with uploadedFiles:', uploadedFilesData);
         const userMessageId = addMessage({
           role: 'user',
           content: message,
@@ -604,59 +678,18 @@ export default function Home() {
           uploadedFiles: uploadedFilesData,
         });
 
-        // Create task or continue conversation
-        let threadId = state.threadId;
-        let projectId = state.projectId;
+        // Add assistant message placeholder IMMEDIATELY to show loading indicator
+        const assistantMessageId = addMessage({
+          role: 'assistant',
+          content: '',
+          status: 'running',
+        });
 
-        if (!threadId || !projectId) {
-          // New conversation
-          const taskResponse = await ChatService.createTask(message, files);
-          threadId = taskResponse.threadId;
-          projectId = taskResponse.projectId;
-          setThreadInfo(threadId, projectId);
-
-          // Save thread to database
-          if (currentUser) {
-            try {
-              const threadTitle = message.length > 50 ? message.substring(0, 50) + '...' : message;
-              await DBClient.createThread(
-                currentUser.id,
-                threadId,
-                projectId,
-                threadTitle
-              );
-
-              // Reload threads from database
-              const dbThreads = await DBClient.getUserThreads(currentUser.id);
-              const threadSummaries: ThreadSummary[] = dbThreads.map(thread => ({
-                threadId: thread.thread_id,
-                projectId: thread.project_id,
-                title: thread.title,
-                lastMessage: message,
-                lastUpdated: new Date(thread.last_message_at),
-                messageCount: thread.message_count,
-              }));
-              setThreads(threadSummaries);
-
-              // Save user message to database
-              await DBClient.saveMessage(threadId, {
-                id: userMessageId,
-                role: 'user',
-                content: message,
-                timestamp: new Date(),
-                status: 'completed',
-                uploadedFiles: uploadedFilesData,
-              });
-            } catch (dbError) {
-              console.error('Error saving to database:', dbError);
-              // Continue even if database save fails
-            }
-          }
-        } else {
+        try {
           // Continue conversation and save message to database
           if (currentUser) {
             try {
-              await DBClient.saveMessage(threadId, {
+              await StorageService.saveMessage(threadId, {
                 id: userMessageId,
                 role: 'user',
                 content: message,
@@ -666,8 +699,8 @@ export default function Home() {
               });
 
               // Reload threads to update message count
-              const dbThreads = await DBClient.getUserThreads(currentUser.id);
-              const threadSummaries: ThreadSummary[] = dbThreads.map(thread => ({
+              const storageThreads = await StorageService.getUserThreads(currentUser.id);
+              const threadSummaries: ThreadSummary[] = storageThreads.map(thread => ({
                 threadId: thread.thread_id,
                 projectId: thread.project_id,
                 title: thread.title,
@@ -677,28 +710,46 @@ export default function Home() {
               }));
               setThreads(threadSummaries);
             } catch (dbError) {
-              console.error('Error saving to database:', dbError);
+              // Error saving to database - continue anyway
             }
           }
           
           // Continue conversation
           await ChatService.continueConversation(threadId, projectId, message, files);
+
+          updateStatus('waiting');
+
+          // Start streaming with validated IDs
+          startStreaming(threadId, projectId, assistantMessageId);
+        } catch (innerError) {
+          // Handle error for existing thread
+          setLoading(false);
+          updateStatus('error');
+          
+          // Update the assistant message to show error
+          updateMessage(assistantMessageId, {
+            status: 'error',
+            error: innerError instanceof Error ? innerError.message : 'An error occurred',
+          });
+          
+          handleError(innerError);
+          stopStreaming();
+          
+          // If error is 401 (unauthorized), show API key modal again
+          if (innerError instanceof Error && innerError.message.includes('API key')) {
+            setShowApiKeyModal(true);
+          }
         }
-
-        // Add assistant message placeholder
-        const assistantMessageId = addMessage({
-          role: 'assistant',
-          content: '',
-          status: 'running',
-        });
-
-        updateStatus('waiting');
-
-        // Start streaming with validated IDs
-        startStreaming(threadId, projectId, assistantMessageId);
       } catch (error) {
+        // Outer catch for any other errors (like new thread creation)
+        setLoading(false);
+        updateStatus('error');
         handleError(error);
-        stopStreaming();
+        
+        // If error is 401 (unauthorized), show API key modal again
+        if (error instanceof Error && error.message.includes('API key')) {
+          setShowApiKeyModal(true);
+        }
       }
     },
     [
@@ -717,7 +768,7 @@ export default function Home() {
 
   const handleStop = useCallback(() => {
     if (state.threadId && state.projectId) {
-      ChatService.stopTask(state.threadId, state.projectId).catch(console.error);
+      ChatService.stopTask(state.threadId, state.projectId).catch(() => {});
     }
     
     // Update the message status to 'stopped' to hide the loading indicator
@@ -742,19 +793,18 @@ export default function Home() {
         setLoading(true);
         reset();
         setThreadInfo(threadId, projectId);
-        setSidebarOpen(false);
 
-        // Try to load from database first
+        // Try to load from storage first
         if (currentUser) {
           try {
-            const dbMessages = await DBClient.getThreadMessages(threadId);
-            if (dbMessages.length > 0) {
-              setMessages(dbMessages);
+            const storageMessages = await StorageService.getThreadMessages(threadId);
+            if (storageMessages.length > 0) {
+              setMessages(storageMessages);
               setLoading(false);
               return;
             }
           } catch (dbError) {
-            console.error('Error loading from database, falling back to API:', dbError);
+            // Error loading from database, falling back to API
           }
         }
 
@@ -784,87 +834,37 @@ export default function Home() {
   const handleNewChat = useCallback(() => {
     stopStreaming();
     reset();
-    setSidebarOpen(false);
   }, [reset, stopStreaming]);
 
   const handleUpdateUser = useCallback(async (userData: { email?: string; username?: string; full_name?: string }) => {
     if (!currentUser) return;
     
-    const updatedUser = await DBClient.updateUser(currentUser.id, userData);
+    const updatedUser = await StorageService.updateUser(currentUser.id, userData);
     setCurrentUser(updatedUser);
   }, [currentUser]);
 
   return (
-    <main className="flex h-screen bg-navy-900 relative overflow-hidden w-full max-w-full">
-      {/* Aurora Background - Disabled for ChatGPT-style theme */}
-      {/* <div className="absolute inset-0 z-0">
-        <Aurora
-          colorStops={['#7cff67', '#B19EEF', '#5227FF']}
-          blend={0.5}
-          amplitude={1.0}
-          speed={1}
-        />
-      </div> */}
-
+    <main className="flex h-screen bg-white relative overflow-hidden w-full max-w-full">
       {/* Sidebar */}
-      {/* On mobile: overlay with z-50, On desktop: docked with relative positioning */}
-      <ConversationSidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
+      <Sidebar 
         threads={threads}
-        currentThreadId={state.threadId}
-        onSelectThread={handleSelectThread}
-        onNewChat={handleNewChat}
+        onThreadDeleted={() => currentUser && loadThreads(currentUser.id)}
+        onApiKeyClick={handleApiKeyClick}
       />
 
       {/* Main content */}
-      {/* Flex-1 ensures it takes remaining space after sidebar on desktop */}
       <div className="flex flex-col flex-1 overflow-hidden relative z-10 w-full">
-        {/* Header */}
-        <header className="border-b border-navy-700 bg-black px-4 lg:px-6 py-4 relative z-10">
-          <div className="flex items-center justify-between">
+        {/* Navbar */}
+        <nav className="navbar w-full bg-white border-b border-gray-200">
+          <div className="flex items-center justify-between w-full px-4">
+            <div className="flex-1"></div>
+            
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="p-2 text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded-lg transition-all duration-200 ease-in-out"
-                aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
-                aria-expanded={sidebarOpen}
-                aria-controls="conversation-sidebar"
-                title={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  {sidebarOpen ? (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  ) : (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16M4 18h16"
-                    />
-                  )}
-                </svg>
-              </button>
-              <div className="text-center">
-                <h1 className="text-xl lg:text-2xl font-bold text-gray-100">AI BRAIN</h1>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              {/* Folder icon button - only show when thread is active, hidden on mobile */}
+              {/* Folder icon button - only show when thread is active */}
               {state.threadId && state.projectId && (
                 <button
                   onClick={() => setFileModalOpen(true)}
-                  className="hidden sm:block p-2 text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded-lg transition-all duration-200 ease-in-out"
+                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200 ease-in-out"
                   aria-label="View thread files"
                   title="View all files in this thread"
                 >
@@ -883,108 +883,9 @@ export default function Home() {
                   </svg>
                 </button>
               )}
-              
-              {/* User Profile Section */}
-              <div className="relative flex items-center gap-2" ref={avatarDropdownRef}>
-                {/* Score/Status Indicator - hidden on mobile */}
-                <span className="hidden sm:block text-xs font-semibold text-gray-300">
-                  6/75
-                </span>
-                
-                {/* User Avatar */}
-                <UserAvatar
-                  userName={currentUser?.full_name || currentUser?.username || 'User'}
-                  size={36}
-                  onClick={() => setAvatarDropdownOpen(!avatarDropdownOpen)}
-                  aria-expanded={avatarDropdownOpen}
-                  aria-haspopup="true"
-                  aria-label="User menu"
-                />
-
-                {/* Dropdown Menu */}
-                {avatarDropdownOpen && (
-                  <div 
-                    className="absolute top-full right-0 mt-2 w-56 bg-navy-900 border border-navy-700 rounded-xl shadow-xl overflow-hidden z-50 backdrop-blur-md"
-                    role="menu"
-                    aria-label="User account menu"
-                  >
-                    {/* User Info Section */}
-                    <div className="px-4 py-3 border-b border-navy-700">
-                      <p className="text-sm font-bold text-gray-100">{currentUser?.full_name || currentUser?.username || 'User'}</p>
-                      <p className="text-xs font-normal text-gray-400 mt-1">{currentUser?.email || 'user@example.com'}</p>
-                    </div>
-
-                    {/* Menu Items */}
-                    <div className="py-1">
-                      <button
-                        onClick={() => {
-                          setProfileModalOpen(true);
-                          setAvatarDropdownOpen(false);
-                        }}
-                        className="w-full px-4 py-3 text-left text-sm font-medium text-gray-300 hover:bg-navy-800 hover:text-gray-100 transition-all duration-150 ease-in-out flex items-center gap-3"
-                        role="menuitem"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        <span>Profile</span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          console.log('Settings clicked');
-                          setAvatarDropdownOpen(false);
-                        }}
-                        className="w-full px-4 py-3 text-left text-sm font-medium text-gray-300 hover:bg-navy-800 hover:text-gray-100 transition-all duration-150 ease-in-out flex items-center gap-3"
-                        role="menuitem"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        <span>Settings</span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          console.log('Help clicked');
-                          setAvatarDropdownOpen(false);
-                        }}
-                        className="w-full px-4 py-3 text-left text-sm font-medium text-gray-300 hover:bg-navy-800 hover:text-gray-100 transition-all duration-150 ease-in-out flex items-center gap-3"
-                        role="menuitem"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span>Help & Support</span>
-                      </button>
-                    </div>
-
-                    {/* Divider */}
-                    <div className="border-t border-navy-700"></div>
-
-                    {/* Logout */}
-                    <div className="py-1">
-                      <button
-                        onClick={() => {
-                          console.log('Logout clicked');
-                          setAvatarDropdownOpen(false);
-                        }}
-                        className="w-full px-4 py-3 text-left text-sm font-semibold text-red-400 hover:bg-navy-800 hover:text-red-300 transition-all duration-150 ease-in-out flex items-center gap-3"
-                        role="menuitem"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
-                        <span>Logout</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
-        </header>
+        </nav>
 
         {/* Chat container */}
         <div className="flex-1 overflow-hidden">
@@ -1050,6 +951,14 @@ export default function Home() {
         onClose={() => setProfileModalOpen(false)}
         currentUser={currentUser}
         onUpdateUser={handleUpdateUser}
+      />
+
+      {/* API Key Modal */}
+      <ApiKeyModal
+        isOpen={showApiKeyModal}
+        onValidKey={handleValidApiKey}
+        currentApiKey={apiKey}
+        onClose={handleCloseApiKeyModal}
       />
     </main>
   );

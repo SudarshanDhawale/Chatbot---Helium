@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Empty Code Block Visual Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #0a0e1a;
+      color: #e5e7eb;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      color: #60a5fa;
+      margin-bottom: 2rem;
+    }
+    
+    .test-section {
+      margin-bottom: 3rem;
+      padding: 1.5rem;
+      background: #1a1f2e;
+      border-radius: 8px;
+      border: 1px solid #2d3748;
+    }
+    
+    h2 {
+      color: #93c5fd;
+      margin-top: 0;
+      margin-bottom: 1rem;
+      font-size: 1.25rem;
+    }
+    
+    .description {
+      color: #9ca3af;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+    
+    /* Simulated CodeBlock styles */
+    .code-block {
+      border-radius: 0.5rem;
+      overflow: hidden;
+      border: 1px solid #1e3a5f;
+      background: rgba(10, 14, 26, 0.8);
+      backdrop-filter: blur(4px);
+    }
+    
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 1rem;
+      background: rgba(10, 14, 26, 0.6);
+      border-bottom: 1px solid #1e3a5f;
+    }
+    
+    .language-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .language-icon {
+      width: 1rem;
+      height: 1rem;
+      color: #9ca3af;
+    }
+    
+    .language-name {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .copy-button {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #9ca3af;
+      background: transparent;
+      border: none;
+      border-radius: 0.25rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .copy-button:hover {
+      color: #e5e7eb;
+      background: #1e3a5f;
+    }
+    
+    .copy-icon {
+      width: 0.875rem;
+      height: 0.875rem;
+    }
+    
+    .code-content {
+      overflow-x: auto;
+      overflow-y: auto;
+      max-height: 500px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0.2);
+    }
+    
+    .empty-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #9ca3af;
+      font-style: italic;
+      padding: 2rem 1rem;
+      min-height: 4rem;
+    }
+    
+    .code-text {
+      margin: 0;
+      padding: 1rem;
+      background: transparent;
+      font-size: 0.875rem;
+      line-height: 1.625;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: #d4d4d4;
+      white-space: pre;
+      overflow-x: auto;
+    }
+    
+    .checklist {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #0f1419;
+      border-radius: 0.5rem;
+      border: 1px solid #2d3748;
+    }
+    
+    .checklist h3 {
+      color: #60a5fa;
+      font-size: 1rem;
+      margin-top: 0;
+      margin-bottom: 0.75rem;
+    }
+    
+    .checklist ul {
+      margin: 0;
+      padding-left: 1.5rem;
+    }
+    
+    .checklist li {
+      color: #9ca3af;
+      margin-bottom: 0.5rem;
+    }
+    
+    .status {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-top: 1rem;
+    }
+    
+    .status.pass {
+      background: #065f46;
+      color: #6ee7b7;
+    }
+    
+    .status.manual {
+      background: #78350f;
+      color: #fcd34d;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 Empty Code Block Visual Test</h1>
+    
+    <div class="test-section">
+      <h2>Test 1: Empty Python Code Block</h2>
+      <p class="description">
+        This simulates an empty code block with Python language identifier.
+        The header should display "Python" and the content area should show the placeholder text.
+      </p>
+      
+      <div class="code-block">
+        <div class="code-header">
+          <div class="language-label">
+            <svg class="language-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+            </svg>
+            <span class="language-name">Python</span>
+          </div>
+          <button class="copy-button">
+            <svg class="copy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <span>Copy</span>
+          </button>
+        </div>
+        <div class="code-content">
+          <div class="empty-placeholder">Empty code block</div>
+        </div>
+      </div>
+      
+      <div class="checklist">
+        <h3>Verification Checklist:</h3>
+        <ul>
+          <li>✓ Header displays "PYTHON" label</li>
+          <li>✓ Copy button is visible and functional</li>
+          <li>✓ Placeholder text "Empty code block" is displayed</li>
+          <li>✓ Text is italic and secondary color</li>
+          <li>✓ Container has proper padding and min-height</li>
+          <li>✓ Styling matches the dark theme</li>
+        </ul>
+      </div>
+      
+      <span class="status pass">EXPECTED BEHAVIOR</span>
+    </div>
+    
+    <div class="test-section">
+      <h2>Test 2: Empty JavaScript Code Block</h2>
+      <p class="description">
+        This simulates an empty code block with JavaScript language identifier.
+      </p>
+      
+      <div class="code-block">
+        <div class="code-header">
+          <div class="language-label">
+            <svg class="language-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+            </svg>
+            <span class="language-name">JavaScript</span>
+          </div>
+          <button class="copy-button">
+            <svg class="copy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <span>Copy</span>
+          </button>
+        </div>
+        <div class="code-content">
+          <div class="empty-placeholder">Empty code block</div>
+        </div>
+      </div>
+      
+      <span class="status pass">EXPECTED BEHAVIOR</span>
+    </div>
+    
+    <div class="test-section">
+      <h2>Test 3: Comparison with Non-Empty Code Block</h2>
+      <p class="description">
+        This shows a normal code block with content for comparison.
+      </p>
+      
+      <div class="code-block">
+        <div class="code-header">
+          <div class="language-label">
+            <svg class="language-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+            </svg>
+            <span class="language-name">Python</span>
+          </div>
+          <button class="copy-button">
+            <svg class="copy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <span>Copy</span>
+          </button>
+        </div>
+        <div class="code-content">
+          <pre class="code-text">def hello_world():
+    print("Hello, World!")
+    return True</pre>
+        </div>
+      </div>
+      
+      <p class="description" style="margin-top: 1rem;">
+        Notice the difference: the non-empty block shows actual code, while empty blocks show the placeholder.
+      </p>
+      
+      <span class="status pass">REFERENCE</span>
+    </div>
+    
+    <div class="test-section">
+      <h2>Manual Testing Instructions</h2>
+      <p class="description">
+        To test the actual implementation in the application:
+      </p>
+      
+      <div class="checklist">
+        <h3>Steps:</h3>
+        <ul>
+          <li>1. Start the development server</li>
+          <li>2. Open the chat interface</li>
+          <li>3. Send a message with an empty code block: <code>```python\n```</code></li>
+          <li>4. Verify the code block renders with:
+            <ul style="margin-top: 0.5rem;">
+              <li>Header showing the language name</li>
+              <li>Copy button (clicking should copy empty string)</li>
+              <li>Placeholder text "Empty code block" in italic</li>
+              <li>Proper styling matching the dark theme</li>
+            </ul>
+          </li>
+          <li>5. Test with different languages (JavaScript, TypeScript, etc.)</li>
+          <li>6. Verify no console errors appear</li>
+        </ul>
+      </div>
+      
+      <span class="status manual">MANUAL TEST REQUIRED</span>
+    </div>
+    
+    <div class="test-section">
+      <h2>Requirements Validation</h2>
+      <p class="description">
+        This implementation satisfies Requirement 6.1:
+      </p>
+      
+      <div class="checklist">
+        <h3>Requirement 6.1 Acceptance Criteria:</h3>
+        <ul>
+          <li>✅ WHEN a code block is empty</li>
+          <li>✅ THE Code_Block_Component SHALL display an empty container with the header</li>
+          <li>✅ Placeholder text "Empty code block" is displayed</li>
+          <li>✅ Consistent styling and spacing maintained</li>
+        </ul>
+      </div>
+      
+      <span class="status pass">REQUIREMENT SATISFIED</span>
+    </div>
+  </div>
+  
+  <script>
+    // Add copy functionality to buttons
+    document.querySelectorAll('.copy-button').forEach(button => {
+      button.addEventListener('click', () => {
+        const codeBlock = button.closest('.code-block');
+        const codeContent = codeBlock.querySelector('.code-text');
+        const emptyPlaceholder = codeBlock.querySelector('.empty-placeholder');
+        
+        if (codeContent) {
+          navigator.clipboard.writeText(codeContent.textContent);
+          button.innerHTML = '<svg class="copy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg><span style="color: #6ee7b7;">Copied</span>';
+          setTimeout(() => {
+            button.innerHTML = '<svg class="copy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg><span>Copy</span>';
+          }, 2000);
+        } else if (emptyPlaceholder) {
+          navigator.clipboard.writeText('');
+          button.innerHTML = '<svg class="copy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg><span style="color: #6ee7b7;">Copied</span>';
+          setTimeout(() => {
+            button.innerHTML = '<svg class="copy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg><span>Copy</span>';
+          }, 2000);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

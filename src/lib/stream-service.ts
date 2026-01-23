@@ -4,6 +4,18 @@
 
 import type { StreamEvent } from '@/types/stream';
 
+// Helper to get API key from localStorage
+function getApiKey(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('helium_api_key');
+}
+
+// Helper to create headers with API key
+function createHeaders(): HeadersInit {
+  const apiKey = getApiKey();
+  return apiKey ? { 'x-helium-api-key': apiKey } : {};
+}
+
 export class StreamService {
   /**
    * Stream task results using Server-Sent Events
@@ -33,6 +45,7 @@ export class StreamService {
           `/api/chat/${threadId}/stream?${params.toString()}`,
           {
             signal: abortController?.signal,
+            headers: createHeaders(),
           }
         );
 
@@ -45,7 +58,6 @@ export class StreamService {
           throw new Error('Response body is null');
         }
 
-        console.log('Stream started, reading response...');
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
@@ -54,7 +66,6 @@ export class StreamService {
           const { done, value } = await reader.read();
 
           if (done) {
-            console.log('Stream ended');
             // Process any remaining buffer
             if (buffer.trim()) {
               const lines = buffer.split('\n');
@@ -64,7 +75,7 @@ export class StreamService {
                     const event: StreamEvent = JSON.parse(line.slice(6));
                     options.onEvent(event);
                   } catch (error) {
-                    console.error('Error parsing final SSE data:', error, line);
+                    // Error parsing final SSE data - skip
                   }
                 }
               }
@@ -91,27 +102,21 @@ export class StreamService {
               try {
                 const jsonStr = trimmedLine.slice(6);
                 const event: StreamEvent = JSON.parse(jsonStr);
-                console.log('Received SSE event:', event.type, event);
                 options.onEvent(event);
 
                 // Don't stop reading - continue until stream is actually closed
                 // The stream will close when Helium API closes the connection
               } catch (error) {
-                console.error('Error parsing SSE data:', error, 'Line:', trimmedLine);
+                // Error parsing SSE data - skip this line
               }
-            } else {
-              // Log non-data lines for debugging
-              console.log('Non-data SSE line:', trimmedLine);
             }
           }
         }
       } catch (error) {
         if (error instanceof Error && error.name === 'AbortError') {
           // Stream was aborted, don't call onError
-          console.log('Stream aborted');
           return;
         }
-        console.error('Stream error:', error);
         options.onError?.(error instanceof Error ? error : new Error(String(error)));
       }
     };

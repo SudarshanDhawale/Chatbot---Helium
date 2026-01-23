@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CodeBlock Copy Functionality Test</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: #0a0e1a;
+      color: #e5e7eb;
+    }
+    h1 {
+      color: #60a5fa;
+      margin-bottom: 2rem;
+    }
+    .test-section {
+      margin-bottom: 3rem;
+      padding: 1.5rem;
+      background: #1a1f2e;
+      border-radius: 8px;
+      border: 1px solid #2d3748;
+    }
+    .test-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #93c5fd;
+    }
+    .test-description {
+      margin-bottom: 1rem;
+      color: #9ca3af;
+    }
+    .code-block {
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #374151;
+      background: #111827;
+      margin-bottom: 1rem;
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      background: #1f2937;
+      border-bottom: 1px solid #374151;
+    }
+    .language-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #9ca3af;
+    }
+    .copy-button {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #9ca3af;
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .copy-button:hover {
+      color: #e5e7eb;
+      background: #374151;
+    }
+    .copy-button.copied {
+      color: #34d399;
+    }
+    .code-content {
+      padding: 1rem;
+      overflow-x: auto;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    pre {
+      margin: 0;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+      line-height: 1.625;
+      color: #d4d4d4;
+    }
+    .clipboard-display {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #0f172a;
+      border-radius: 4px;
+      border: 1px solid #1e293b;
+    }
+    .clipboard-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #60a5fa;
+      margin-bottom: 0.5rem;
+    }
+    .clipboard-content {
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      color: #94a3b8;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .test-result {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+    .test-result.pass {
+      background: #064e3b;
+      color: #34d399;
+      border: 1px solid #065f46;
+    }
+    .test-result.fail {
+      background: #7f1d1d;
+      color: #fca5a5;
+      border: 1px solid #991b1b;
+    }
+  </style>
+</head>
+<body>
+  <h1>CodeBlock Copy Functionality Test</h1>
+  <p style="color: #9ca3af; margin-bottom: 2rem;">
+    Click the copy button on each code block, then check if the clipboard content matches the original code exactly.
+  </p>
+
+  <!-- Test 1: Simple code -->
+  <div class="test-section">
+    <div class="test-title">Test 1: Simple Code</div>
+    <div class="test-description">Should copy simple one-line code exactly</div>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="language-label">JavaScript</span>
+        <button class="copy-button" onclick="copyCode(this, 'test1')">
+          <span>Copy</span>
+        </button>
+      </div>
+      <div class="code-content">
+        <pre id="test1">console.log("Hello World");</pre>
+      </div>
+    </div>
+    <div class="clipboard-display">
+      <div class="clipboard-label">Clipboard Content:</div>
+      <div class="clipboard-content" id="clipboard1">(not copied yet)</div>
+    </div>
+    <div class="test-result" id="result1" style="display: none;"></div>
+  </div>
+
+  <!-- Test 2: Multiline with indentation -->
+  <div class="test-section">
+    <div class="test-title">Test 2: Multiline Code with Indentation</div>
+    <div class="test-description">Should preserve indentation and newlines</div>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="language-label">Python</span>
+        <button class="copy-button" onclick="copyCode(this, 'test2')">
+          <span>Copy</span>
+        </button>
+      </div>
+      <div class="code-content">
+        <pre id="test2">def fibonacci(n):
+    if n <= 1:
+        return n
+    return fibonacci(n-1) + fibonacci(n-2)</pre>
+      </div>
+    </div>
+    <div class="clipboard-display">
+      <div class="clipboard-label">Clipboard Content:</div>
+      <div class="clipboard-content" id="clipboard2">(not copied yet)</div>
+    </div>
+    <div class="test-result" id="result2" style="display: none;"></div>
+  </div>
+
+  <!-- Test 3: Special characters -->
+  <div class="test-section">
+    <div class="test-title">Test 3: Special Characters</div>
+    <div class="test-description">Should preserve special characters like $, |, &lt;, &gt;</div>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="language-label">Bash</span>
+        <button class="copy-button" onclick="copyCode(this, 'test3')">
+          <span>Copy</span>
+        </button>
+      </div>
+      <div class="code-content">
+        <pre id="test3">echo "Hello $USER" | grep -E "^[a-z]+$" > output.txt</pre>
+      </div>
+    </div>
+    <div class="clipboard-display">
+      <div class="clipboard-label">Clipboard Content:</div>
+      <div class="clipboard-content" id="clipboard3">(not copied yet)</div>
+    </div>
+    <div class="test-result" id="result3" style="display: none;"></div>
+  </div>
+
+  <!-- Test 4: Unicode characters -->
+  <div class="test-section">
+    <div class="test-title">Test 4: Unicode Characters</div>
+    <div class="test-description">Should preserve emojis and Unicode characters</div>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="language-label">JavaScript</span>
+        <button class="copy-button" onclick="copyCode(this, 'test4')">
+          <span>Copy</span>
+        </button>
+      </div>
+      <div class="code-content">
+        <pre id="test4">// 🚀 Rocket function
+const rocket = "🚀";
+console.log(`Launch ${rocket}!`);</pre>
+      </div>
+    </div>
+    <div class="clipboard-display">
+      <div class="clipboard-label">Clipboard Content:</div>
+      <div class="clipboard-content" id="clipboard4">(not copied yet)</div>
+    </div>
+    <div class="test-result" id="result4" style="display: none;"></div>
+  </div>
+
+  <!-- Test 5: Tabs -->
+  <div class="test-section">
+    <div class="test-title">Test 5: Tab Characters</div>
+    <div class="test-description">Should preserve tab characters (shown as → in display)</div>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="language-label">JavaScript</span>
+        <button class="copy-button" onclick="copyCode(this, 'test5')">
+          <span>Copy</span>
+        </button>
+      </div>
+      <div class="code-content">
+        <pre id="test5">function test() {
+	if (true) {
+		return "tab indented";
+	}
+}</pre>
+      </div>
+    </div>
+    <div class="clipboard-display">
+      <div class="clipboard-label">Clipboard Content (tabs shown as →):</div>
+      <div class="clipboard-content" id="clipboard5">(not copied yet)</div>
+    </div>
+    <div class="test-result" id="result5" style="display: none;"></div>
+  </div>
+
+  <script>
+    async function copyCode(button, testId) {
+      const codeElement = document.getElementById(testId);
+      const originalCode = codeElement.textContent;
+      const clipboardDisplay = document.getElementById('clipboard' + testId.slice(-1));
+      const resultDisplay = document.getElementById('result' + testId.slice(-1));
+      
+      try {
+        // Copy to clipboard
+        await navigator.clipboard.writeText(originalCode);
+        
+        // Update button state
+        button.classList.add('copied');
+        button.innerHTML = '<span>Copied!</span>';
+        setTimeout(() => {
+          button.classList.remove('copied');
+          button.innerHTML = '<span>Copy</span>';
+        }, 2000);
+        
+        // Read from clipboard to verify
+        const clipboardContent = await navigator.clipboard.readText();
+        
+        // Display clipboard content (show tabs as arrows)
+        clipboardDisplay.textContent = clipboardContent.replace(/\t/g, '→');
+        
+        // Verify match
+        const matches = clipboardContent === originalCode;
+        resultDisplay.style.display = 'block';
+        if (matches) {
+          resultDisplay.className = 'test-result pass';
+          resultDisplay.textContent = '✓ PASS: Clipboard content matches original code exactly';
+        } else {
+          resultDisplay.className = 'test-result fail';
+          resultDisplay.textContent = '✗ FAIL: Clipboard content does not match original code';
+          console.error('Mismatch:', {
+            original: originalCode,
+            clipboard: clipboardContent,
+            originalLength: originalCode.length,
+            clipboardLength: clipboardContent.length
+          });
+        }
+      } catch (error) {
+        console.error('Copy failed:', error);
+        resultDisplay.style.display = 'block';
+        resultDisplay.className = 'test-result fail';
+        resultDisplay.textContent = '✗ FAIL: Copy operation failed - ' + error.message;
+      }
+    }
+  </script>
+</body>
+</html>
