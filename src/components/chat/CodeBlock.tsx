@@ -100,7 +100,6 @@ function SafeSyntaxHighlighter({ language, code }: { language: string; code: str
     );
   } catch (error) {
     // If SyntaxHighlighter throws during render, fall back to plain code
-    console.warn(`Syntax highlighting failed for language "${language}":`, error);
     return <PlainCodeBlock code={code} />;
   }
 }
@@ -116,8 +115,7 @@ export function CodeBlock({ language, code }: CodeBlockProps) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error('Failed to copy code to clipboard:', error);
-      // Maintain original button state on error (don't set copied to true)
+      // Failed to copy - maintain original button state
     }
   };
 

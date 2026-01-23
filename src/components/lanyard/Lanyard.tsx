@@ -87,7 +87,7 @@ interface BandProps {
 }
 
 function Band({ maxSpeed = 50, minSpeed = 0, isMobile = false }: BandProps) {
-  const band = useRef<any>();
+  const band = useRef<any>(null);
   const fixed = useRef<RapierRigidBody>(null);
   const j1 = useRef<RapierRigidBody>(null);
   const j2 = useRef<RapierRigidBody>(null);

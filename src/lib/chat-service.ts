@@ -5,6 +5,18 @@
 import type { ChatMessage } from '@/types/chat';
 import type { ThreadResponse } from '@/types/helium';
 
+// Helper to get API key from localStorage
+function getApiKey(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('helium_api_key');
+}
+
+// Helper to create headers with API key
+function createHeaders(): HeadersInit {
+  const apiKey = getApiKey();
+  return apiKey ? { 'x-helium-api-key': apiKey } : {};
+}
+
 export class ChatService {
   /**
    * Create a new chat task
@@ -28,6 +40,7 @@ export class ChatService {
 
     const response = await fetch('/api/chat', {
       method: 'POST',
+      headers: createHeaders(),
       body: formData,
     });
 
@@ -57,7 +70,10 @@ export class ChatService {
     });
 
     const response = await fetch(
-      `/api/chat/${threadId}/response?${params.toString()}`
+      `/api/chat/${threadId}/response?${params.toString()}`,
+      {
+        headers: createHeaders(),
+      }
     );
 
     if (!response.ok) {
@@ -90,6 +106,7 @@ export class ChatService {
       `/api/chat/${threadId}/continue?project_id=${projectId}`,
       {
         method: 'POST',
+        headers: createHeaders(),
         body: formData,
       }
     );
@@ -113,6 +130,7 @@ export class ChatService {
       `/api/chat/${threadId}/stop?project_id=${projectId}`,
       {
         method: 'POST',
+        headers: createHeaders(),
       }
     );
 
@@ -149,7 +167,10 @@ export class ChatService {
     });
 
     const response = await fetch(
-      `/api/chat/${threadId}/history?${params.toString()}`
+      `/api/chat/${threadId}/history?${params.toString()}`,
+      {
+        headers: createHeaders(),
+      }
     );
 
     if (!response.ok) {

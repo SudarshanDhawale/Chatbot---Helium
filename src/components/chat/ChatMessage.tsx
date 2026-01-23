@@ -58,7 +58,6 @@ interface ChatMessageProps {
 
 export function ChatMessage({ message, threadId, projectId }: ChatMessageProps) {
   const isUser = message.role === 'user';
-  console.log('ChatMessage render:', message.id, message.role, isUser, message.uploadedFiles);
   const isError = message.status === 'error';
   const isStopped = message.status === 'stopped';
   const isLoading = message.status === 'sending' || message.status === 'running';
@@ -97,13 +96,10 @@ export function ChatMessage({ message, threadId, projectId }: ChatMessageProps) 
 
           {/* Uploaded images - show at top for user messages */}
           {(() => {
-            console.log('ChatMessage uploadedFiles check:', isUser, message.uploadedFiles, message.uploadedFiles?.length, message.id, message.content);
             return isUser && message.uploadedFiles && message.uploadedFiles.length > 0 && (
               <div className="mb-3 flex flex-wrap gap-2 max-w-full">
                 {message.uploadedFiles.map((file, index) => {
-                  console.log('Rendering uploaded file:', file.name, file.type, file.file_id, file.url);
                   const isImage = file.type.startsWith('image/');
-                  console.log('Is image:', isImage);
                   const imageKey = `${file.name}-${index}`;
                   
                   // Generate URL for the file
@@ -145,7 +141,6 @@ export function ChatMessage({ message, threadId, projectId }: ChatMessageProps) 
                               setImagePreview({ url: fileUrl, fileName: file.name });
                             }}
                             onError={(e) => {
-                              console.log('Image failed to load:', fileUrl, file.name);
                               setImageLoadingStates(prev => ({ ...prev, [imageKey]: false }));
                               // Hide the broken image and show fallback
                               e.currentTarget.style.display = 'none';
@@ -239,14 +234,6 @@ export function ChatMessage({ message, threadId, projectId }: ChatMessageProps) 
 
         {/* Files - Always show if present */}
         {(() => {
-          console.log('ChatMessage files check:', {
-            messageId: message.id,
-            hasFiles: !!message.files,
-            filesLength: message.files?.length,
-            files: message.files,
-            threadId,
-            projectId
-          });
           return message.files && message.files.length > 0 && (
             <div className="mt-3">
               <FileList

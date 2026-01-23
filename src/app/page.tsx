@@ -11,8 +11,9 @@ import { FileModal } from '@/components/files/FileModal';
 import { ProfileModal } from '@/components/user/ProfileModal';
 import { UserAvatar } from '@/components/user/UserAvatar';
 import { Sidebar } from '@/components/sidebar/Sidebar';
-import Aurora from '@/components/Aurora/Aurora';
+import { ApiKeyModal } from '@/components/auth/ApiKeyModal';
 import { useChat } from '@/hooks/use-chat';
+import { useApiKey } from '@/hooks/use-api-key';
 import { ChatService } from '@/lib/chat-service';
 import { StreamService } from '@/lib/stream-service';
 import { DBClient } from '@/lib/db-client';
@@ -22,6 +23,7 @@ import type { StreamEvent } from '@/types/stream';
 
 export default function Home() {
   const router = useRouter();
+  const { apiKey, isLoading: isLoadingApiKey, hasApiKey, saveApiKey } = useApiKey();
   
   const {
     state,
@@ -36,7 +38,7 @@ export default function Home() {
     reset,
   } = useChat({
     onError: (error) => {
-      console.error('Chat error:', error);
+      // Error handled by chat hook
     },
   });
 
@@ -53,7 +55,28 @@ export default function Home() {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [avatarDropdownOpen, setAvatarDropdownOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ id: string; email: string; username?: string; full_name?: string } | null>(null);
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const avatarDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Show API key modal if no key is present
+  useEffect(() => {
+    if (!isLoadingApiKey && !hasApiKey) {
+      setShowApiKeyModal(true);
+    }
+  }, [isLoadingApiKey, hasApiKey]);
+
+  const handleValidApiKey = useCallback((key: string) => {
+    saveApiKey(key);
+    setShowApiKeyModal(false);
+  }, [saveApiKey]);
+
+  const handleApiKeyClick = useCallback(() => {
+    setShowApiKeyModal(true);
+  }, []);
+
+  const handleCloseApiKeyModal = useCallback(() => {
+    setShowApiKeyModal(false);
+  }, []);
 
   // Function to load threads from database
   const loadThreads = useCallback(async (userId: string) => {
@@ -69,7 +92,7 @@ export default function Home() {
       }));
       setThreads(threadSummaries);
     } catch (error) {
-      console.error('Error loading threads:', error);
+      // Error loading threads - fail silently
     }
   }, []);
 
@@ -85,7 +108,6 @@ export default function Home() {
         // Load threads from database
         await loadThreads(user.id);
       } catch (error) {
-        console.error('Error initializing user:', error);
         // Fallback to empty state if database fails
         setCurrentUser({ id: 'temp', email: 'user@example.com' });
       }
@@ -145,10 +167,6 @@ export default function Home() {
 
       // Validate before starting
       if (!threadId || !projectId || threadId === 'undefined' || projectId === 'undefined') {
-        console.error('Cannot start streaming: Invalid threadId or projectId', {
-          threadId,
-          projectId,
-        });
         updateMessage(messageId, {
           status: 'error',
           error: 'Invalid thread or project ID',
@@ -173,9 +191,7 @@ export default function Home() {
           timeout: 300,
           includeFileContent: true,
           onEvent: (event: StreamEvent) => {
-            console.log('Received stream event:', event.type, event);
             if (!streamingMessageIdRef.current) {
-              console.warn('No streaming message ID, ignoring event');
               return;
             }
 
@@ -319,20 +335,15 @@ export default function Home() {
 
               case 'file':
                 if (event.file) {
-                  console.log('File event received:', event.file);
                   // Check if file already exists
                   const exists = filesRef.current.some(f => f.file_id === event.file!.file_id);
                   if (!exists) {
-                    console.log('Adding new file:', event.file.file_name);
                     filesRef.current.push(event.file);
-                    console.log('Files array now has', filesRef.current.length, 'files:', filesRef.current);
                     updateMessage(streamingMessageIdRef.current, {
                       content: accumulatedContentRef.current,
                       codeBlocks: codeBlocksRef.current.length > 0 ? codeBlocksRef.current : undefined,
                       files: filesRef.current.length > 0 ? [...filesRef.current] : undefined,
                     });
-                  } else {
-                    console.log('File already exists:', event.file.file_name);
                   }
                 }
                 break;
@@ -408,14 +419,11 @@ export default function Home() {
                     }
                     
                     // Extract files from tool results
-                    console.log('Processing tool result:', functionName, toolExec.result);
                     if ((functionName === 'create_file' || functionName === 'generate_image' || functionName.includes('image')) && toolExec.result) {
                       try {
                         const result = typeof toolExec.result === 'string'
                           ? JSON.parse(toolExec.result)
                           : toolExec.result;
-
-                        console.log('Parsed tool result:', result);
 
                         // If result contains file information
                         if (result.file_id || result.file_path || result.image_url || result.image_path) {
@@ -429,12 +437,9 @@ export default function Home() {
                             file_size: fileSize,
                           };
 
-                          console.log('Extracted file info:', fileInfo);
-
                           // Check if file already exists
                           const exists = filesRef.current.some(f => f.file_id === fileInfo.file_id);
                           if (!exists) {
-                            console.log('Adding file to filesRef:', fileInfo);
                             filesRef.current.push(fileInfo);
                             // Update message immediately when file is added
                             updateMessage(streamingMessageIdRef.current, {
@@ -442,14 +447,10 @@ export default function Home() {
                               codeBlocks: codeBlocksRef.current.length > 0 ? codeBlocksRef.current : undefined,
                               files: filesRef.current.length > 0 ? [...filesRef.current] : undefined,
                             });
-                          } else {
-                            console.log('File already exists, skipping:', fileInfo.file_name);
                           }
-                        } else {
-                          console.log('No file information found in result');
                         }
                       } catch (e) {
-                        console.error('Error parsing tool result:', e);
+                        // Error parsing tool result - skip
                       }
                     }
                     
@@ -499,7 +500,6 @@ export default function Home() {
             stopStreaming();
           },
           onComplete: async () => {
-            console.log('Stream completed, fetching final response for files');
             // Stream has naturally ended - fetch final response to get files
             try {
               if (threadId && projectId && streamingMessageIdRef.current) {
@@ -507,8 +507,6 @@ export default function Home() {
                   timeout: 30,
                   includeFileContent: false,
                 });
-
-                console.log('Final response files:', finalResponse.files);
 
                 // Extract files from final response
                 if (finalResponse.files && finalResponse.files.length > 0) {
@@ -518,41 +516,25 @@ export default function Home() {
                     file_size: f.file_size || 0,
                   }));
 
-                  console.log('Processing final response files:', newFiles);
-
                   // Merge with existing files (avoid duplicates)
                   newFiles.forEach(newFile => {
                     const exists = filesRef.current.some(f => f.file_id === newFile.file_id);
                     if (!exists) {
-                      console.log('Adding final file:', newFile);
                       filesRef.current.push(newFile);
-                    } else {
-                      console.log('Final file already exists:', newFile.file_name);
                     }
                   });
 
                   // Update message with all files
-                  console.log('Updating message with final files:', filesRef.current);
                   updateMessage(streamingMessageIdRef.current, {
                     content: accumulatedContentRef.current,
                     codeBlocks: codeBlocksRef.current.length > 0 ? codeBlocksRef.current : undefined,
                     files: filesRef.current.length > 0 ? [...filesRef.current] : undefined,
                   });
-                  console.log('Updated message with final files:', filesRef.current);
-                } else {
-                  console.log('No files in final response');
                 }
 
                 // Save assistant message to database
                 if (currentUser && streamingMessageIdRef.current) {
                   try {
-                    console.log('Saving assistant message to database:', {
-                      messageId: streamingMessageIdRef.current,
-                      contentLength: accumulatedContentRef.current.length,
-                      filesCount: filesRef.current.length,
-                      codeBlocksCount: codeBlocksRef.current.length,
-                    });
-                    
                     // Construct the message directly from refs instead of relying on state
                     const assistantMessage: ChatMessage = {
                       id: streamingMessageIdRef.current,
@@ -566,14 +548,13 @@ export default function Home() {
                     };
                     
                     await DBClient.saveMessage(threadId, assistantMessage);
-                    console.log('✓ Assistant message saved to database successfully');
                   } catch (dbError) {
-                    console.error('❌ Error saving assistant message to database:', dbError);
+                    // Error saving to database - continue anyway
                   }
                 }
               }
             } catch (error) {
-              console.error('Error fetching final files:', error);
+              // Error fetching final files - continue anyway
             }
             
             // Clean up
@@ -643,7 +624,7 @@ export default function Home() {
                 uploadedFiles: uploadedFilesData,
               });
             } catch (dbError) {
-              console.error('Error saving thread/message:', dbError);
+              // Error saving thread/message - continue anyway
             }
           }
 
@@ -656,9 +637,7 @@ export default function Home() {
         // Convert files to serializable format with object URLs
         const uploadedFilesData = files && files.length > 0
           ? files.map(file => {
-              console.log('Processing uploaded file:', file.name, file.type, file.size);
               const url = URL.createObjectURL(file);
-              console.log('Created URL for file:', url);
               return {
                 name: file.name,
                 type: file.type,
@@ -669,7 +648,6 @@ export default function Home() {
           : undefined;
 
         // Add user message with uploaded files
-        console.log('Adding user message with uploadedFiles:', uploadedFilesData);
         const userMessageId = addMessage({
           role: 'user',
           content: message,
@@ -683,7 +661,9 @@ export default function Home() {
           content: '',
           status: 'running',
         });
-        // Continue conversation and save message to database
+
+        try {
+          // Continue conversation and save message to database
           if (currentUser) {
             try {
               await DBClient.saveMessage(threadId, {
@@ -707,20 +687,46 @@ export default function Home() {
               }));
               setThreads(threadSummaries);
             } catch (dbError) {
-              console.error('Error saving to database:', dbError);
+              // Error saving to database - continue anyway
             }
           }
           
           // Continue conversation
           await ChatService.continueConversation(threadId, projectId, message, files);
 
-        updateStatus('waiting');
+          updateStatus('waiting');
 
-        // Start streaming with validated IDs
-        startStreaming(threadId, projectId, assistantMessageId);
+          // Start streaming with validated IDs
+          startStreaming(threadId, projectId, assistantMessageId);
+        } catch (innerError) {
+          // Handle error for existing thread
+          setLoading(false);
+          updateStatus('error');
+          
+          // Update the assistant message to show error
+          updateMessage(assistantMessageId, {
+            status: 'error',
+            error: innerError instanceof Error ? innerError.message : 'An error occurred',
+          });
+          
+          handleError(innerError);
+          stopStreaming();
+          
+          // If error is 401 (unauthorized), show API key modal again
+          if (innerError instanceof Error && innerError.message.includes('API key')) {
+            setShowApiKeyModal(true);
+          }
+        }
       } catch (error) {
+        // Outer catch for any other errors (like new thread creation)
+        setLoading(false);
+        updateStatus('error');
         handleError(error);
-        stopStreaming();
+        
+        // If error is 401 (unauthorized), show API key modal again
+        if (error instanceof Error && error.message.includes('API key')) {
+          setShowApiKeyModal(true);
+        }
       }
     },
     [
@@ -739,7 +745,7 @@ export default function Home() {
 
   const handleStop = useCallback(() => {
     if (state.threadId && state.projectId) {
-      ChatService.stopTask(state.threadId, state.projectId).catch(console.error);
+      ChatService.stopTask(state.threadId, state.projectId).catch(() => {});
     }
     
     // Update the message status to 'stopped' to hide the loading indicator
@@ -775,7 +781,7 @@ export default function Home() {
               return;
             }
           } catch (dbError) {
-            console.error('Error loading from database, falling back to API:', dbError);
+            // Error loading from database, falling back to API
           }
         }
 
@@ -820,6 +826,7 @@ export default function Home() {
       <Sidebar 
         threads={threads}
         onThreadDeleted={() => currentUser && loadThreads(currentUser.id)}
+        onApiKeyClick={handleApiKeyClick}
       />
 
       {/* Main content */}
@@ -921,6 +928,14 @@ export default function Home() {
         onClose={() => setProfileModalOpen(false)}
         currentUser={currentUser}
         onUpdateUser={handleUpdateUser}
+      />
+
+      {/* API Key Modal */}
+      <ApiKeyModal
+        isOpen={showApiKeyModal}
+        onValidKey={handleValidApiKey}
+        currentApiKey={apiKey}
+        onClose={handleCloseApiKeyModal}
       />
     </main>
   );

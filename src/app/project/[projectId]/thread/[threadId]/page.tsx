@@ -11,7 +11,9 @@ import { ChatContainer } from '@/components/chat/ChatContainer';
 import { FileModal } from '@/components/files/FileModal';
 import { ProfileModal } from '@/components/user/ProfileModal';
 import { Sidebar } from '@/components/sidebar/Sidebar';
+import { ApiKeyModal } from '@/components/auth/ApiKeyModal';
 import { useChat } from '@/hooks/use-chat';
+import { useApiKey } from '@/hooks/use-api-key';
 import { ChatService } from '@/lib/chat-service';
 import { StreamService } from '@/lib/stream-service';
 import { DBClient } from '@/lib/db-client';
@@ -26,6 +28,7 @@ export default function ThreadPage() {
   const projectId = params.projectId as string;
   const threadId = params.threadId as string;
   const isNewThread = searchParams.get('new') === 'true';
+  const { apiKey, isLoading: isLoadingApiKey, hasApiKey, saveApiKey } = useApiKey();
 
   const {
     state,
@@ -40,7 +43,7 @@ export default function ThreadPage() {
     reset,
   } = useChat({
     onError: (error) => {
-      console.error('Chat error:', error);
+      // Error handled by chat hook
     },
   });
 
@@ -56,6 +59,30 @@ export default function ThreadPage() {
   const [fileModalOpen, setFileModalOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ id: string; email: string; username?: string; full_name?: string } | null>(null);
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const hasStartedStreamingRef = useRef(false);
+  const assistantMessageIdRef = useRef<string | null>(null);
+
+  // Show API key modal if no key is present
+  useEffect(() => {
+    if (!isLoadingApiKey && !hasApiKey) {
+      setShowApiKeyModal(true);
+    }
+  }, [isLoadingApiKey, hasApiKey]);
+
+  const handleValidApiKey = useCallback((key: string) => {
+    saveApiKey(key);
+    setShowApiKeyModal(false);
+  }, [saveApiKey]);
+
+  const handleApiKeyClick = useCallback(() => {
+    setShowApiKeyModal(true);
+  }, []);
+
+  const handleCloseApiKeyModal = useCallback(() => {
+    setShowApiKeyModal(false);
+  }, []);
 
   // Function to load threads from database
   const loadThreads = useCallback(async (userId: string) => {
@@ -79,6 +106,8 @@ export default function ThreadPage() {
   useEffect(() => {
     const initializeThread = async () => {
       try {
+        setIsInitializing(true);
+        
         // Get or create user
         const defaultEmail = 'smdhawale77@gmail.com';
         const user = await DBClient.getOrCreateUser(defaultEmail);
@@ -102,29 +131,43 @@ export default function ThreadPage() {
         // Find the current thread
         const currentThread = dbThreads.find(t => t.thread_id === threadId && t.project_id === projectId);
         if (currentThread) {
-          // Always load messages from database (including for new threads)
-          // Load messages from database
-          console.log('Loading messages for thread:', threadId);
-          const dbMessages = await DBClient.getThreadMessages(threadId);
-          console.log('Loaded messages from database:', dbMessages.length, 'messages');
-          console.log('Message roles:', dbMessages.map(m => m.role));
-          console.log('Message contents:', dbMessages.map(m => ({ role: m.role, content: m.content?.substring(0, 50) })));
-          
-          if (dbMessages.length > 0) {
-            setMessages(dbMessages);
-            console.log('Set messages in state');
-          } else if (!isNewThread) {
-            // Only fallback to API if this is NOT a new thread
-            // (new threads won't have messages in Helium API yet)
-            const history = await ChatService.getConversationHistory(threadId, projectId);
-            const messages: ChatMessage[] = history.messages.map((msg) => ({
-              id: msg.message_id,
-              role: msg.role,
-              content: msg.content,
-              timestamp: new Date(msg.created_at),
-              status: 'completed' as const,
-            }));
-            setMessages(messages);
+          // For new threads, don't load messages yet - let the auto-streaming effect handle it
+          if (!isNewThread) {
+            // Load messages from database for existing threads
+            const dbMessages = await DBClient.getThreadMessages(threadId);
+            
+            if (dbMessages.length > 0) {
+              setMessages(dbMessages);
+            } else {
+              // Fallback to API if no messages in DB
+              const history = await ChatService.getConversationHistory(threadId, projectId);
+              const messages: ChatMessage[] = history.messages.map((msg) => ({
+                id: msg.message_id,
+                role: msg.role,
+                content: msg.content,
+                timestamp: new Date(msg.created_at),
+                status: 'completed' as const,
+              }));
+              setMessages(messages);
+            }
+          } else {
+            // For new threads, just load the user message WITHOUT calling setMessages
+            // The auto-streaming effect will add the assistant message
+            const dbMessages = await DBClient.getThreadMessages(threadId);
+            if (dbMessages.length > 0) {
+              // Only set messages if we haven't started streaming yet
+              if (!hasStartedStreamingRef.current) {
+                setMessages(dbMessages);
+                
+                // Immediately add assistant message placeholder for new threads
+                const assistantMessageId = addMessage({
+                  role: 'assistant',
+                  content: '',
+                  status: 'running',
+                });
+                assistantMessageIdRef.current = assistantMessageId;
+              }
+            }
           }
         } else {
           // Thread not found, redirect to home
@@ -134,6 +177,8 @@ export default function ThreadPage() {
       } catch (error) {
         console.error('Error initializing thread:', error);
         handleError(error);
+      } finally {
+        setIsInitializing(false);
       }
     };
 
@@ -200,7 +245,6 @@ export default function ThreadPage() {
           timeout: 300,
           includeFileContent: true,
           onEvent: (event: StreamEvent) => {
-            console.log('Received stream event:', event.type, event);
             if (!streamingMessageIdRef.current) {
               console.warn('No streaming message ID, ignoring event');
               return;
@@ -346,11 +390,9 @@ export default function ThreadPage() {
 
               case 'file':
                 if (event.file) {
-                  console.log('File event received:', event.file);
                   // Check if file already exists
                   const exists = filesRef.current.some(f => f.file_id === event.file!.file_id);
                   if (!exists) {
-                    console.log('Adding new file:', event.file.file_name);
                     filesRef.current.push(event.file);
                     updateMessage(streamingMessageIdRef.current, {
                       content: accumulatedContentRef.current,
@@ -358,7 +400,7 @@ export default function ThreadPage() {
                       files: filesRef.current.length > 0 ? [...filesRef.current] : undefined,
                     });
                   } else {
-                    console.log('File already exists:', event.file.file_name);
+                    // File already exists
                   }
                 }
                 break;
@@ -434,14 +476,11 @@ export default function ThreadPage() {
                     }
                     
                     // Extract files from tool results
-                    console.log('Processing tool result:', functionName, toolExec.result);
                     if ((functionName === 'create_file' || functionName === 'generate_image' || functionName.includes('image')) && toolExec.result) {
                       try {
                         const result = typeof toolExec.result === 'string'
                           ? JSON.parse(toolExec.result)
                           : toolExec.result;
-
-                        console.log('Parsed tool result:', result);
 
                         // If result contains file information
                         if (result.file_id || result.file_path || result.image_url || result.image_path) {
@@ -455,12 +494,9 @@ export default function ThreadPage() {
                             file_size: fileSize,
                           };
 
-                          console.log('Extracted file info:', fileInfo);
-
                           // Check if file already exists
                           const exists = filesRef.current.some(f => f.file_id === fileInfo.file_id);
                           if (!exists) {
-                            console.log('Adding file to filesRef:', fileInfo);
                             filesRef.current.push(fileInfo);
                             // Update message immediately when file is added
                             updateMessage(streamingMessageIdRef.current, {
@@ -469,10 +505,10 @@ export default function ThreadPage() {
                               files: filesRef.current.length > 0 ? [...filesRef.current] : undefined,
                             });
                           } else {
-                            console.log('File already exists, skipping:', fileInfo.file_name);
+                            // File already exists, skipping
                           }
                         } else {
-                          console.log('No file information found in result');
+                          // No file information found in result
                         }
                       } catch (e) {
                         console.error('Error parsing tool result:', e);
@@ -514,6 +550,7 @@ export default function ThreadPage() {
             }
           },
           onError: (error: Error) => {
+            console.error('❌ Stream error:', error);
             if (streamingMessageIdRef.current) {
               handleError(error);
               updateMessage(streamingMessageIdRef.current, {
@@ -525,7 +562,6 @@ export default function ThreadPage() {
             stopStreaming();
           },
           onComplete: async () => {
-            console.log('Stream completed, fetching final response for files');
             // Stream has naturally ended - fetch final response to get files
             try {
               if (threadId && projectId && streamingMessageIdRef.current) {
@@ -533,8 +569,6 @@ export default function ThreadPage() {
                   timeout: 30,
                   includeFileContent: false,
                 });
-
-                console.log('Final response files:', finalResponse.files);
 
                 // Extract files from final response
                 if (finalResponse.files && finalResponse.files.length > 0) {
@@ -544,41 +578,29 @@ export default function ThreadPage() {
                     file_size: f.file_size || 0,
                   }));
 
-                  console.log('Processing final response files:', newFiles);
-
                   // Merge with existing files (avoid duplicates)
                   newFiles.forEach(newFile => {
                     const exists = filesRef.current.some(f => f.file_id === newFile.file_id);
                     if (!exists) {
-                      console.log('Adding final file:', newFile);
                       filesRef.current.push(newFile);
                     } else {
-                      console.log('Final file already exists:', newFile.file_name);
+                      // Final file already exists
                     }
                   });
 
                   // Update message with all files
-                  console.log('Updating message with final files:', filesRef.current);
                   updateMessage(streamingMessageIdRef.current, {
                     content: accumulatedContentRef.current,
                     codeBlocks: codeBlocksRef.current.length > 0 ? codeBlocksRef.current : undefined,
                     files: filesRef.current.length > 0 ? [...filesRef.current] : undefined,
                   });
-                  console.log('Updated message with final files:', filesRef.current);
                 } else {
-                  console.log('No files in final response');
+                  // No files in final response
                 }
 
                 // Save assistant message to database
                 if (currentUser && streamingMessageIdRef.current) {
                   try {
-                    console.log('Saving assistant message to database:', {
-                      messageId: streamingMessageIdRef.current,
-                      contentLength: accumulatedContentRef.current.length,
-                      filesCount: filesRef.current.length,
-                      codeBlocksCount: codeBlocksRef.current.length,
-                    });
-                    
                     // Construct the message directly from refs instead of relying on state
                     const assistantMessage: ChatMessage = {
                       id: streamingMessageIdRef.current,
@@ -592,7 +614,6 @@ export default function ThreadPage() {
                     };
                     
                     await DBClient.saveMessage(threadId, assistantMessage);
-                    console.log('✓ Assistant message saved to database successfully');
                     
                     // Reload threads to update the sidebar
                     await loadThreads(currentUser.id);
@@ -627,26 +648,30 @@ export default function ThreadPage() {
     // Only start streaming if:
     // 1. This is a new thread (has ?new=true parameter)
     // 2. Thread info is set
-    // 3. We have exactly 1 message (the user message we just saved)
-    if (isNewThread && state.threadId && state.projectId && state.messages.length === 1) {
-      console.log('New thread detected, starting streaming automatically');
+    // 3. We have 2 messages (user + assistant placeholder)
+    // 4. Not currently initializing (messages have been loaded)
+    // 5. Not already loading (to prevent duplicate streaming)
+    // 6. Haven't already started streaming
+    // 7. We have an assistant message ID
+    if (isNewThread && state.threadId && state.projectId && state.messages.length === 2 && !isInitializing && !state.isLoading && !hasStartedStreamingRef.current && assistantMessageIdRef.current) {
       
-      // Add assistant message placeholder to show loading indicator
-      const assistantMessageId = addMessage({
-        role: 'assistant',
-        content: '',
-        status: 'running',
-      });
+      hasStartedStreamingRef.current = true;
       
-      // Start streaming
+      // Start streaming with the assistant message ID we already created
       setLoading(true);
       updateStatus('waiting');
-      startStreaming(state.threadId, state.projectId, assistantMessageId);
       
-      // Remove the 'new' query parameter from URL
-      router.replace(`/project/${projectId}/thread/${threadId}`, { scroll: false });
+      // IMPORTANT: Start streaming BEFORE removing the query parameter
+      // This ensures the streaming starts while isNewThread is still true
+      startStreaming(state.threadId, state.projectId, assistantMessageIdRef.current);
+      
+      // Remove the 'new' query parameter from URL AFTER starting stream
+      // Use setTimeout to ensure this happens after the current render cycle
+      setTimeout(() => {
+        router.replace(`/project/${projectId}/thread/${threadId}`, { scroll: false });
+      }, 100);
     }
-  }, [isNewThread, state.threadId, state.projectId, state.messages.length, addMessage, setLoading, updateStatus, startStreaming, router, projectId, threadId]);
+  }, [isNewThread, state.threadId, state.projectId, state.messages.length, isInitializing, state.isLoading, setLoading, updateStatus, startStreaming, router, projectId, threadId]);
 
   const handleSend = useCallback(
     async (message: string, files?: File[]) => {
@@ -685,28 +710,57 @@ export default function ThreadPage() {
           status: 'running',
         });
 
-        // Continue conversation
-        await ChatService.continueConversation(state.threadId, state.projectId, message, files);
+        try {
+          // Continue conversation
+          await ChatService.continueConversation(state.threadId, state.projectId, message, files);
 
-        // Save user message to database
-        if (currentUser) {
-          await DBClient.saveMessage(state.threadId, {
-            id: userMessageId,
-            role: 'user',
-            content: message,
-            timestamp: new Date(),
-            status: 'completed',
-            uploadedFiles: uploadedFilesData,
+          // Save user message to database
+          if (currentUser) {
+            await DBClient.saveMessage(state.threadId, {
+              id: userMessageId,
+              role: 'user',
+              content: message,
+              timestamp: new Date(),
+              status: 'completed',
+              uploadedFiles: uploadedFilesData,
+            });
+          }
+
+          updateStatus('waiting');
+          
+          // Start streaming
+          startStreaming(state.threadId, state.projectId, assistantMessageId);
+        } catch (innerError) {
+          // Handle error during conversation
+          console.error('Error continuing conversation:', innerError);
+          setLoading(false);
+          updateStatus('error');
+          
+          // Update the assistant message to show error
+          updateMessage(assistantMessageId, {
+            status: 'error',
+            error: innerError instanceof Error ? innerError.message : 'An error occurred',
           });
+          
+          handleError(innerError);
+          stopStreaming();
+          
+          // If error is 401 (unauthorized), show API key modal again
+          if (innerError instanceof Error && innerError.message.includes('API key')) {
+            setShowApiKeyModal(true);
+          }
         }
-
-        updateStatus('waiting');
-        
-        // Start streaming
-        startStreaming(state.threadId, state.projectId, assistantMessageId);
       } catch (error) {
+        // Outer catch for any other errors
+        console.error('Error in handleSend:', error);
+        setLoading(false);
+        updateStatus('error');
         handleError(error);
-        stopStreaming();
+        
+        // If error is 401 (unauthorized), show API key modal again
+        if (error instanceof Error && error.message.includes('API key')) {
+          setShowApiKeyModal(true);
+        }
       }
     },
     [state.threadId, state.projectId, addMessage, setLoading, updateStatus, handleError, stopStreaming, startStreaming, currentUser]
@@ -738,11 +792,42 @@ export default function ThreadPage() {
     setCurrentUser(updatedUser);
   }, [currentUser]);
 
+  // Show loader while initializing
+  if (isInitializing) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="loader"></div>
+          <p className="text-sm text-gray-600">Loading conversation...</p>
+        </div>
+        <style jsx>{`
+          .loader {
+            border: 4px solid rgba(0, 0, 0, .1);
+            border-left-color: #3b82f6;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            animation: spin89345 1s linear infinite;
+          }
+          @keyframes spin89345 {
+            0% {
+              transform: rotate(0deg);
+            }
+            100% {
+              transform: rotate(360deg);
+            }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
   return (
     <main className="flex h-screen bg-white relative overflow-hidden w-full max-w-full">
       <Sidebar 
         threads={threads}
         onThreadDeleted={() => currentUser && loadThreads(currentUser.id)}
+        onApiKeyClick={handleApiKeyClick}
       />
 
       <div className="flex flex-col flex-1 overflow-hidden relative z-10 w-full">
@@ -797,6 +882,7 @@ export default function ThreadPage() {
 
       <FileModal isOpen={fileModalOpen} onClose={() => setFileModalOpen(false)} threadId={state.threadId} projectId={state.projectId} />
       <ProfileModal isOpen={profileModalOpen} onClose={() => setProfileModalOpen(false)} currentUser={currentUser} onUpdateUser={handleUpdateUser} />
+      <ApiKeyModal isOpen={showApiKeyModal} onValidKey={handleValidApiKey} currentApiKey={apiKey} onClose={handleCloseApiKeyModal} />
     </main>
   );
 }

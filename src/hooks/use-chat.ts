@@ -51,12 +51,14 @@ export function useChat(options: UseChatOptions = {}) {
 
   const updateMessage = useCallback(
     (messageId: string, updates: Partial<ChatMessage>) => {
-      setState((prev) => ({
-        ...prev,
-        messages: prev.messages.map((msg) =>
-          msg.id === messageId ? { ...msg, ...updates } : msg
-        ),
-      }));
+      setState((prev) => {
+        return {
+          ...prev,
+          messages: prev.messages.map((msg) =>
+            msg.id === messageId ? { ...msg, ...updates } : msg
+          ),
+        };
+      });
     },
     []
   );

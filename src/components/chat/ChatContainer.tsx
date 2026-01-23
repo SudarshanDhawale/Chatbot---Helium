@@ -155,7 +155,6 @@ export function ChatContainer({
                 showCursor
                 cursorCharacter="_"
                 deletingSpeed={30}
-                variableSpeed={false}
                 className="text-gray-600"
                 cursorClassName="text-gray-600"
               />

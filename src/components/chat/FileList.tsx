@@ -116,10 +116,7 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
     fileId: string;
   } | null>(null);
 
-  console.log('FileList rendering with files:', files);
-
   if (!files || files.length === 0) {
-    console.log('FileList: No files to display');
     return null;
   }
 
@@ -149,7 +146,6 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
 
   const handleFileClick = async (file: { file_id: string; file_name: string }) => {
     if (!threadId || !projectId) {
-      console.error('Thread ID or Project ID not available');
       return;
     }
 
@@ -161,7 +157,11 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
           thread_id: threadId,
           project_id: projectId,
         });
-        const response = await fetch(`/api/files/${encodeURIComponent(file.file_id)}?${params.toString()}`);
+        const apiKey = localStorage.getItem('helium_api_key');
+        const headers: HeadersInit = apiKey ? { 'x-helium-api-key': apiKey } : {};
+        const response = await fetch(`/api/files/${encodeURIComponent(file.file_id)}?${params.toString()}`, {
+          headers,
+        });
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ error: 'Failed to load image' }));
@@ -177,7 +177,6 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
           fileId: file.file_id,
         });
       } catch (error) {
-        console.error('Error loading image:', error);
         alert(`Failed to load image: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
       return;
@@ -185,7 +184,6 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
 
     // For non-image files, download directly
     if (!threadId || !projectId) {
-      console.error('Thread ID or Project ID not available');
       return;
     }
 
@@ -202,7 +200,11 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
         thread_id: threadId,
         project_id: projectId,
       });
-      const response = await fetch(`/api/files/${encodeURIComponent(file.file_id)}?${params.toString()}`);
+      const apiKey = localStorage.getItem('helium_api_key');
+      const headers: HeadersInit = apiKey ? { 'x-helium-api-key': apiKey } : {};
+      const response = await fetch(`/api/files/${encodeURIComponent(file.file_id)}?${params.toString()}`, {
+        headers,
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Failed to download file' }));
@@ -221,7 +223,6 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error downloading file:', error);
       alert(`Failed to download file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setDownloading((prev) => {
@@ -234,7 +235,6 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
 
   const handleDownload = async (fileId: string, fileName: string) => {
     if (!threadId || !projectId) {
-      console.error('Thread ID or Project ID not available');
       return;
     }
 
@@ -251,7 +251,11 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
         thread_id: threadId,
         project_id: projectId,
       });
-      const response = await fetch(`/api/files/${encodeURIComponent(fileId)}?${params.toString()}`);
+      const apiKey = localStorage.getItem('helium_api_key');
+      const headers: HeadersInit = apiKey ? { 'x-helium-api-key': apiKey } : {};
+      const response = await fetch(`/api/files/${encodeURIComponent(fileId)}?${params.toString()}`, {
+        headers,
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Failed to download file' }));
@@ -270,7 +274,6 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error downloading file:', error);
       alert(`Failed to download file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setDownloading((prev) => {
@@ -324,7 +327,6 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
                                 });
                               })
                               .catch(error => {
-                                console.error('Error loading image:', error);
                                 alert(`Failed to load image: ${error instanceof Error ? error.message : 'Unknown error'}`);
                               });
                           }
@@ -337,7 +339,6 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
                             className="max-w-full max-h-[300px] object-contain"
                             style={{ maxWidth: '100%' }}
                             onError={(e) => {
-                              console.log('Image failed to load:', fileUrl, file.file_name);
                               e.currentTarget.style.display = 'none';
                             }}
                           />

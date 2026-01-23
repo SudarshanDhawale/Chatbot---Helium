@@ -211,7 +211,6 @@ export function FileModal({ isOpen, onClose, threadId, projectId }: FileModalPro
       const data = await response.json();
       setFiles(data.files || []);
     } catch (err) {
-      console.error('Error fetching files:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch files');
     } finally {
       setLoading(false);
@@ -220,7 +219,6 @@ export function FileModal({ isOpen, onClose, threadId, projectId }: FileModalPro
 
   const handleFileClick = async (file: ThreadFile) => {
     if (!threadId || !projectId) {
-      console.error('Thread ID or Project ID not available');
       return;
     }
 
@@ -237,7 +235,11 @@ export function FileModal({ isOpen, onClose, threadId, projectId }: FileModalPro
         thread_id: threadId,
         project_id: projectId,
       });
-      const response = await fetch(`/api/files/${encodeURIComponent(file.file_id)}?${params.toString()}`);
+      const apiKey = localStorage.getItem('helium_api_key');
+      const headers: HeadersInit = apiKey ? { 'x-helium-api-key': apiKey } : {};
+      const response = await fetch(`/api/files/${encodeURIComponent(file.file_id)}?${params.toString()}`, {
+        headers,
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Failed to download file' }));
@@ -256,7 +258,6 @@ export function FileModal({ isOpen, onClose, threadId, projectId }: FileModalPro
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error downloading file:', error);
       alert(`Failed to download file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setDownloading((prev) => {

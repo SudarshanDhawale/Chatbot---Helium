@@ -11,9 +11,10 @@ import type { ThreadSummary } from '@/types/thread';
 interface SidebarProps {
   threads?: ThreadSummary[];
   onThreadDeleted?: () => void;
+  onApiKeyClick?: () => void;
 }
 
-export function Sidebar({ threads = [], onThreadDeleted }: SidebarProps) {
+export function Sidebar({ threads = [], onThreadDeleted, onApiKeyClick }: SidebarProps) {
   const [isHovered, setIsHovered] = useState(false);
   const router = useRouter();
   const params = useParams();
@@ -90,7 +91,6 @@ export function Sidebar({ threads = [], onThreadDeleted }: SidebarProps) {
         onThreadDeleted();
       }
     } catch (error) {
-      console.error('Error deleting thread:', error);
       alert('Failed to delete conversation. Please try again.');
     } finally {
       setDeletingThreadId(null);
@@ -162,6 +162,28 @@ export function Sidebar({ threads = [], onThreadDeleted }: SidebarProps) {
                     <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                   </svg>
                   <span className="font-medium">New Chat</span>
+                </button>
+              </li>
+
+              {/* API Key */}
+              <li>
+                <button
+                  onClick={onApiKeyClick}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-150"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                    strokeWidth="2"
+                    fill="none"
+                    stroke="currentColor"
+                    className="w-5 h-5 flex-shrink-0"
+                  >
+                    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
+                  </svg>
+                  <span className="font-medium">API Key</span>
                 </button>
               </li>
 

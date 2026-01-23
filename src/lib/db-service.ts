@@ -174,14 +174,6 @@ export class DatabaseService {
     threadId: string,
     message: ChatMessage
   ): Promise<Message> {
-    console.log('DatabaseService.saveMessage called:', {
-      threadId,
-      messageId: message.id,
-      role: message.role,
-      contentLength: message.content?.length,
-      status: message.status,
-    });
-    
     const client = await getClient();
     
     try {
@@ -199,7 +191,6 @@ export class DatabaseService {
       }
       
       const threadUuid = threadResult.rows[0].id;
-      console.log('Found thread UUID:', threadUuid);
 
       // Insert message
       const messageResult = await client.query(
@@ -218,11 +209,9 @@ export class DatabaseService {
 
       const savedMessage = messageResult.rows[0];
       const messageUuid = savedMessage.id;
-      console.log('Message inserted with UUID:', messageUuid);
 
       // Save files if any
       if (message.files && message.files.length > 0) {
-        console.log('Saving', message.files.length, 'files');
         for (const file of message.files) {
           await client.query(
             `INSERT INTO files (message_id, file_id, file_name, file_size, is_uploaded)
@@ -278,7 +267,6 @@ export class DatabaseService {
       );
 
       await client.query('COMMIT');
-      console.log('✓ Message saved successfully to database');
       return savedMessage;
     } catch (error) {
       await client.query('ROLLBACK');
@@ -293,8 +281,6 @@ export class DatabaseService {
    * Get messages for a thread
    */
   static async getThreadMessages(threadId: string): Promise<ChatMessage[]> {
-    console.log('DatabaseService.getThreadMessages called for threadId:', threadId);
-    
     const result = await query(
       `SELECT 
         m.*,
@@ -329,17 +315,9 @@ export class DatabaseService {
        ORDER BY m.created_at ASC`,
       [threadId]
     );
-
-    console.log('getThreadMessages SQL result:', {
-      rowCount: result.rows.length,
-      roles: result.rows.map(r => r.role),
-    });
     
     return result.rows.map((row) => {
-      console.log('Mapping message:', row.message_id, row.role, row.content?.substring(0, 50));
-      console.log('Row created_at:', row.created_at, typeof row.created_at);
       const timestamp = new Date(row.created_at);
-      console.log('Parsed timestamp:', timestamp, timestamp.getTime(), isNaN(timestamp.getTime()));
       
       return {
         id: row.message_id || row.id,
