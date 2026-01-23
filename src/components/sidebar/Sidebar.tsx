@@ -78,8 +78,8 @@ export function Sidebar({ threads = [], onThreadDeleted, onApiKeyClick }: Sideba
 
     try {
       setDeletingThreadId(threadToDelete.threadId);
-      const { DBClient } = await import('@/lib/db-client');
-      await DBClient.deleteThread(threadToDelete.threadId);
+      const { StorageService } = await import('@/lib/storage-client');
+      await StorageService.deleteThread(threadToDelete.threadId);
       
       // If we're currently viewing the deleted thread, redirect to home
       if (currentThreadId === threadToDelete.threadId) {

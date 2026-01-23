@@ -16,7 +16,7 @@ import { useChat } from '@/hooks/use-chat';
 import { useApiKey } from '@/hooks/use-api-key';
 import { ChatService } from '@/lib/chat-service';
 import { StreamService } from '@/lib/stream-service';
-import { DBClient } from '@/lib/db-client';
+import { StorageService } from '@/lib/storage-client';
 import type { ChatMessage } from '@/types/chat';
 import type { ThreadSummary } from '@/types/thread';
 import type { StreamEvent } from '@/types/stream';
@@ -87,8 +87,8 @@ export default function ThreadPage() {
   // Function to load threads from database
   const loadThreads = useCallback(async (userId: string) => {
     try {
-      const dbThreads = await DBClient.getUserThreads(userId);
-      const threadSummaries: ThreadSummary[] = dbThreads.map(thread => ({
+      const storageThreads = await StorageService.getUserThreads(userId);
+      const threadSummaries: ThreadSummary[] = storageThreads.map(thread => ({
         threadId: thread.thread_id,
         projectId: thread.project_id,
         title: thread.title,
@@ -98,7 +98,7 @@ export default function ThreadPage() {
       }));
       setThreads(threadSummaries);
     } catch (error) {
-      console.error('Error loading threads:', error);
+      // Error loading threads - fail silently
     }
   }, []);
 
@@ -110,15 +110,15 @@ export default function ThreadPage() {
         
         // Get or create user
         const defaultEmail = 'smdhawale77@gmail.com';
-        const user = await DBClient.getOrCreateUser(defaultEmail);
+        const user = await StorageService.getOrCreateUser(defaultEmail);
         setCurrentUser(user);
 
         // Set thread info immediately
         setThreadInfo(threadId, projectId);
 
-        // Load threads from database
-        const dbThreads = await DBClient.getUserThreads(user.id);
-        const threadSummaries: ThreadSummary[] = dbThreads.map(thread => ({
+        // Load threads from storage
+        const storageThreads = await StorageService.getUserThreads(user.id);
+        const threadSummaries: ThreadSummary[] = storageThreads.map(thread => ({
           threadId: thread.thread_id,
           projectId: thread.project_id,
           title: thread.title,
@@ -129,15 +129,15 @@ export default function ThreadPage() {
         setThreads(threadSummaries);
 
         // Find the current thread
-        const currentThread = dbThreads.find(t => t.thread_id === threadId && t.project_id === projectId);
+        const currentThread = storageThreads.find(t => t.thread_id === threadId && t.project_id === projectId);
         if (currentThread) {
           // For new threads, don't load messages yet - let the auto-streaming effect handle it
           if (!isNewThread) {
-            // Load messages from database for existing threads
-            const dbMessages = await DBClient.getThreadMessages(threadId);
+            // Load messages from storage for existing threads
+            const storageMessages = await StorageService.getThreadMessages(threadId);
             
-            if (dbMessages.length > 0) {
-              setMessages(dbMessages);
+            if (storageMessages.length > 0) {
+              setMessages(storageMessages);
             } else {
               // Fallback to API if no messages in DB
               const history = await ChatService.getConversationHistory(threadId, projectId);
@@ -153,11 +153,11 @@ export default function ThreadPage() {
           } else {
             // For new threads, just load the user message WITHOUT calling setMessages
             // The auto-streaming effect will add the assistant message
-            const dbMessages = await DBClient.getThreadMessages(threadId);
-            if (dbMessages.length > 0) {
+            const storageMessages = await StorageService.getThreadMessages(threadId);
+            if (storageMessages.length > 0) {
               // Only set messages if we haven't started streaming yet
               if (!hasStartedStreamingRef.current) {
-                setMessages(dbMessages);
+                setMessages(storageMessages);
                 
                 // Immediately add assistant message placeholder for new threads
                 const assistantMessageId = addMessage({
@@ -175,7 +175,6 @@ export default function ThreadPage() {
           router.push('/');
         }
       } catch (error) {
-        console.error('Error initializing thread:', error);
         handleError(error);
       } finally {
         setIsInitializing(false);
@@ -217,10 +216,6 @@ export default function ThreadPage() {
 
       // Validate before starting
       if (!threadId || !projectId || threadId === 'undefined' || projectId === 'undefined') {
-        console.error('Cannot start streaming: Invalid threadId or projectId', {
-          threadId,
-          projectId,
-        });
         updateMessage(messageId, {
           status: 'error',
           error: 'Invalid thread or project ID',
@@ -475,18 +470,41 @@ export default function ThreadPage() {
                       toolExecutionsRef.current[existingIndex].status = 'completed';
                     }
                     
-                    // Extract files from tool results
-                    if ((functionName === 'create_file' || functionName === 'generate_image' || functionName.includes('image')) && toolExec.result) {
+                    // Extract files from ALL tool results (not just specific tools)
+                    if (toolExec.result) {
                       try {
                         const result = typeof toolExec.result === 'string'
                           ? JSON.parse(toolExec.result)
                           : toolExec.result;
 
-                        // If result contains file information
-                        if (result.file_id || result.file_path || result.image_url || result.image_path) {
-                          const fileName = toolExec.arguments?.file_path || result.file_path || result.image_path || result.file_name || `generated_${functionName}_${Date.now()}`;
-                          const fileId = result.file_id || result.image_id || `${threadId}:/workspace/${fileName}`;
-                          const fileSize = result.file_size || result.image_size || 0;
+                        // Check if result has a nested 'file' object (new format)
+                        const fileData = result.file || result;
+
+                        // If result contains file information (check for any file-related fields)
+                        if (fileData.file_id || fileData.file_path || fileData.file_name || 
+                            fileData.image_url || fileData.image_path || 
+                            result.file_id || result.file_path || result.file_name) {
+                          
+                          const fileName = fileData.file_name || 
+                                         toolExec.arguments?.file_path || 
+                                         fileData.file_path || 
+                                         fileData.image_path || 
+                                         result.file_name || 
+                                         result.file_path || 
+                                         result.image_path || 
+                                         `generated_${functionName}_${Date.now()}`;
+                          
+                          const fileId = fileData.file_id || 
+                                       result.file_id || 
+                                       fileData.image_id || 
+                                       result.image_id || 
+                                       `${threadId}:/workspace/${fileName}`;
+                          
+                          const fileSize = fileData.file_size || 
+                                         result.file_size || 
+                                         fileData.image_size || 
+                                         result.image_size || 
+                                         0;
 
                           const fileInfo = {
                             file_id: fileId,
@@ -504,14 +522,10 @@ export default function ThreadPage() {
                               codeBlocks: codeBlocksRef.current.length > 0 ? codeBlocksRef.current : undefined,
                               files: filesRef.current.length > 0 ? [...filesRef.current] : undefined,
                             });
-                          } else {
-                            // File already exists, skipping
                           }
-                        } else {
-                          // No file information found in result
                         }
                       } catch (e) {
-                        console.error('Error parsing tool result:', e);
+                        // Error parsing tool result - skip
                       }
                     }
                     
@@ -550,7 +564,6 @@ export default function ThreadPage() {
             }
           },
           onError: (error: Error) => {
-            console.error('❌ Stream error:', error);
             if (streamingMessageIdRef.current) {
               handleError(error);
               updateMessage(streamingMessageIdRef.current, {
@@ -613,17 +626,17 @@ export default function ThreadPage() {
                       toolExecutions: toolExecutionsRef.current.length > 0 ? toolExecutionsRef.current : undefined,
                     };
                     
-                    await DBClient.saveMessage(threadId, assistantMessage);
+                    await StorageService.saveMessage(threadId, assistantMessage);
                     
                     // Reload threads to update the sidebar
                     await loadThreads(currentUser.id);
                   } catch (dbError) {
-                    console.error('❌ Error saving assistant message to database:', dbError);
+                    // Error saving to database - continue anyway
                   }
                 }
               }
             } catch (error) {
-              console.error('Error fetching final files:', error);
+              // Error fetching final files - continue anyway
             }
             
             // Clean up
@@ -680,7 +693,6 @@ export default function ThreadPage() {
       }
 
       if (!state.threadId || !state.projectId) {
-        console.error('No thread context available');
         return;
       }
 
@@ -714,9 +726,9 @@ export default function ThreadPage() {
           // Continue conversation
           await ChatService.continueConversation(state.threadId, state.projectId, message, files);
 
-          // Save user message to database
+          // Save user message to storage
           if (currentUser) {
-            await DBClient.saveMessage(state.threadId, {
+            await StorageService.saveMessage(state.threadId, {
               id: userMessageId,
               role: 'user',
               content: message,
@@ -732,7 +744,6 @@ export default function ThreadPage() {
           startStreaming(state.threadId, state.projectId, assistantMessageId);
         } catch (innerError) {
           // Handle error during conversation
-          console.error('Error continuing conversation:', innerError);
           setLoading(false);
           updateStatus('error');
           
@@ -752,7 +763,6 @@ export default function ThreadPage() {
         }
       } catch (error) {
         // Outer catch for any other errors
-        console.error('Error in handleSend:', error);
         setLoading(false);
         updateStatus('error');
         handleError(error);
@@ -768,7 +778,7 @@ export default function ThreadPage() {
 
   const handleStop = useCallback(() => {
     if (state.threadId && state.projectId) {
-      ChatService.stopTask(state.threadId, state.projectId).catch(console.error);
+      ChatService.stopTask(state.threadId, state.projectId).catch(() => {});
     }
     
     // Update the message status to 'stopped' to hide the loading indicator
@@ -788,7 +798,7 @@ export default function ThreadPage() {
 
   const handleUpdateUser = useCallback(async (userData: { email?: string; username?: string; full_name?: string }) => {
     if (!currentUser) return;
-    const updatedUser = await DBClient.updateUser(currentUser.id, userData);
+    const updatedUser = await StorageService.updateUser(currentUser.id, userData);
     setCurrentUser(updatedUser);
   }, [currentUser]);
 

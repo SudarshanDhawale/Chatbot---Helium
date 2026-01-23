@@ -7,7 +7,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/sidebar/Sidebar';
-import { DBClient } from '@/lib/db-client';
+import { StorageService } from '@/lib/storage-client';
 import { ChatService } from '@/lib/chat-service';
 import { StreamService } from '@/lib/stream-service';
 import type { ThreadSummary } from '@/types/thread';
@@ -36,11 +36,11 @@ export default function NewsPage() {
     const initializeUser = async () => {
       try {
         const defaultEmail = 'smdhawale77@gmail.com';
-        const user = await DBClient.getOrCreateUser(defaultEmail);
+        const user = await StorageService.getOrCreateUser(defaultEmail);
         setCurrentUser(user);
 
-        const dbThreads = await DBClient.getUserThreads(user.id);
-        const threadSummaries: ThreadSummary[] = dbThreads.map(thread => ({
+        const storageThreads = await StorageService.getUserThreads(user.id);
+        const threadSummaries: ThreadSummary[] = storageThreads.map(thread => ({
           threadId: thread.thread_id,
           projectId: thread.project_id,
           title: thread.title,

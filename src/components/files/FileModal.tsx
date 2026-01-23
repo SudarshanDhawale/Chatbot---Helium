@@ -199,8 +199,12 @@ export function FileModal({ isOpen, onClose, threadId, projectId }: FileModalPro
     setError(null);
 
     try {
+      const apiKey = localStorage.getItem('helium_api_key');
+      const headers: HeadersInit = apiKey ? { 'x-helium-api-key': apiKey } : {};
+      
       const response = await fetch(
-        `/api/chat/${threadId}/files?project_id=${projectId}`
+        `/api/chat/${threadId}/files?project_id=${projectId}`,
+        { headers }
       );
 
       if (!response.ok) {

@@ -16,7 +16,7 @@ import { useChat } from '@/hooks/use-chat';
 import { useApiKey } from '@/hooks/use-api-key';
 import { ChatService } from '@/lib/chat-service';
 import { StreamService } from '@/lib/stream-service';
-import { DBClient } from '@/lib/db-client';
+import { StorageService } from '@/lib/storage-client';
 import type { ChatMessage } from '@/types/chat';
 import type { ThreadSummary } from '@/types/thread';
 import type { StreamEvent } from '@/types/stream';
@@ -78,11 +78,11 @@ export default function Home() {
     setShowApiKeyModal(false);
   }, []);
 
-  // Function to load threads from database
+  // Function to load threads from storage
   const loadThreads = useCallback(async (userId: string) => {
     try {
-      const dbThreads = await DBClient.getUserThreads(userId);
-      const threadSummaries: ThreadSummary[] = dbThreads.map(thread => ({
+      const storageThreads = await StorageService.getUserThreads(userId);
+      const threadSummaries: ThreadSummary[] = storageThreads.map(thread => ({
         threadId: thread.thread_id,
         projectId: thread.project_id,
         title: thread.title,
@@ -96,19 +96,19 @@ export default function Home() {
     }
   }, []);
 
-  // Initialize user and load threads from database on mount
+  // Initialize user and load threads from storage on mount
   useEffect(() => {
     const initializeUser = async () => {
       try {
         // Use the actual user email - in production, this would come from authentication
         const defaultEmail = 'smdhawale77@gmail.com';
-        const user = await DBClient.getOrCreateUser(defaultEmail);
+        const user = await StorageService.getOrCreateUser(defaultEmail);
         setCurrentUser(user);
 
-        // Load threads from database
+        // Load threads from storage
         await loadThreads(user.id);
       } catch (error) {
-        // Fallback to empty state if database fails
+        // Fallback to empty state if storage fails
         setCurrentUser({ id: 'temp', email: 'user@example.com' });
       }
     };
@@ -418,18 +418,41 @@ export default function Home() {
                       toolExecutionsRef.current[existingIndex].status = 'completed';
                     }
                     
-                    // Extract files from tool results
-                    if ((functionName === 'create_file' || functionName === 'generate_image' || functionName.includes('image')) && toolExec.result) {
+                    // Extract files from ALL tool results (not just specific tools)
+                    if (toolExec.result) {
                       try {
                         const result = typeof toolExec.result === 'string'
                           ? JSON.parse(toolExec.result)
                           : toolExec.result;
 
-                        // If result contains file information
-                        if (result.file_id || result.file_path || result.image_url || result.image_path) {
-                          const fileName = toolExec.arguments?.file_path || result.file_path || result.image_path || result.file_name || `generated_${functionName}_${Date.now()}`;
-                          const fileId = result.file_id || result.image_id || `${threadId}:/workspace/${fileName}`;
-                          const fileSize = result.file_size || result.image_size || 0;
+                        // Check if result has a nested 'file' object (new format)
+                        const fileData = result.file || result;
+
+                        // If result contains file information (check for any file-related fields)
+                        if (fileData.file_id || fileData.file_path || fileData.file_name || 
+                            fileData.image_url || fileData.image_path || 
+                            result.file_id || result.file_path || result.file_name) {
+                          
+                          const fileName = fileData.file_name || 
+                                         toolExec.arguments?.file_path || 
+                                         fileData.file_path || 
+                                         fileData.image_path || 
+                                         result.file_name || 
+                                         result.file_path || 
+                                         result.image_path || 
+                                         `generated_${functionName}_${Date.now()}`;
+                          
+                          const fileId = fileData.file_id || 
+                                       result.file_id || 
+                                       fileData.image_id || 
+                                       result.image_id || 
+                                       `${threadId}:/workspace/${fileName}`;
+                          
+                          const fileSize = fileData.file_size || 
+                                         result.file_size || 
+                                         fileData.image_size || 
+                                         result.image_size || 
+                                         0;
 
                           const fileInfo = {
                             file_id: fileId,
@@ -547,9 +570,9 @@ export default function Home() {
                       toolExecutions: toolExecutionsRef.current.length > 0 ? toolExecutionsRef.current : undefined,
                     };
                     
-                    await DBClient.saveMessage(threadId, assistantMessage);
+                    await StorageService.saveMessage(threadId, assistantMessage);
                   } catch (dbError) {
-                    // Error saving to database - continue anyway
+                    // Error saving to storage - continue anyway
                   }
                 }
               }
@@ -598,14 +621,14 @@ export default function Home() {
           if (currentUser) {
             try {
               const threadTitle = message.length > 50 ? message.substring(0, 50) + '...' : message;
-              await DBClient.createThread(
+              await StorageService.createThread(
                 currentUser.id,
                 threadId,
                 projectId,
                 threadTitle
               );
 
-              // Save the user message to database so it appears when thread page loads
+              // Save the user message to storage so it appears when thread page loads
               const uploadedFilesData = files && files.length > 0
                 ? files.map(file => ({
                     name: file.name,
@@ -615,7 +638,7 @@ export default function Home() {
                   }))
                 : undefined;
 
-              await DBClient.saveMessage(threadId, {
+              await StorageService.saveMessage(threadId, {
                 id: `user-${Date.now()}`,
                 role: 'user',
                 content: message,
@@ -666,7 +689,7 @@ export default function Home() {
           // Continue conversation and save message to database
           if (currentUser) {
             try {
-              await DBClient.saveMessage(threadId, {
+              await StorageService.saveMessage(threadId, {
                 id: userMessageId,
                 role: 'user',
                 content: message,
@@ -676,8 +699,8 @@ export default function Home() {
               });
 
               // Reload threads to update message count
-              const dbThreads = await DBClient.getUserThreads(currentUser.id);
-              const threadSummaries: ThreadSummary[] = dbThreads.map(thread => ({
+              const storageThreads = await StorageService.getUserThreads(currentUser.id);
+              const threadSummaries: ThreadSummary[] = storageThreads.map(thread => ({
                 threadId: thread.thread_id,
                 projectId: thread.project_id,
                 title: thread.title,
@@ -771,12 +794,12 @@ export default function Home() {
         reset();
         setThreadInfo(threadId, projectId);
 
-        // Try to load from database first
+        // Try to load from storage first
         if (currentUser) {
           try {
-            const dbMessages = await DBClient.getThreadMessages(threadId);
-            if (dbMessages.length > 0) {
-              setMessages(dbMessages);
+            const storageMessages = await StorageService.getThreadMessages(threadId);
+            if (storageMessages.length > 0) {
+              setMessages(storageMessages);
               setLoading(false);
               return;
             }
@@ -816,7 +839,7 @@ export default function Home() {
   const handleUpdateUser = useCallback(async (userData: { email?: string; username?: string; full_name?: string }) => {
     if (!currentUser) return;
     
-    const updatedUser = await DBClient.updateUser(currentUser.id, userData);
+    const updatedUser = await StorageService.updateUser(currentUser.id, userData);
     setCurrentUser(updatedUser);
   }, [currentUser]);
 

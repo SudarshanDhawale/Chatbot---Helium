@@ -94,7 +94,7 @@ export function ChatMessage({ message, threadId, projectId }: ChatMessageProps) 
             </span>
           </div>
 
-          {/* Uploaded images - show at top for user messages */}
+          {/* Uploaded files - show as capsules for user messages */}
           {(() => {
             return isUser && message.uploadedFiles && message.uploadedFiles.length > 0 && (
               <div className="mb-3 flex flex-wrap gap-2 max-w-full">
@@ -103,76 +103,46 @@ export function ChatMessage({ message, threadId, projectId }: ChatMessageProps) 
                   const imageKey = `${file.name}-${index}`;
                   
                   // Generate URL for the file
-                  // If file has a Helium file_id, use our API endpoint to fetch it
-                  // Otherwise, use the temporary object URL (for files being uploaded)
                   const fileUrl = file.file_id && threadId && projectId
                     ? `/api/files/${encodeURIComponent(file.file_id)}?thread_id=${threadId}&project_id=${projectId}`
                     : file.url;
 
-                  return (
-                    <div
-                      key={imageKey}
-                      className="relative inline-block rounded-lg overflow-hidden border border-navy-700 max-w-full"
-                    >
-                      {isImage && fileUrl ? (
-                        <div className="relative">
-                          {/* Loading state */}
-                          {imageLoadingStates[imageKey] && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-navy-800/80 backdrop-blur-sm">
-                              <div className="flex items-center gap-2">
-                                <div className="w-4 h-4 border-2 border-blue-accent border-t-transparent rounded-full animate-spin"></div>
-                                <span className="text-xs text-text-secondary">Loading...</span>
-                              </div>
-                            </div>
-                          )}
-                          {/* Image with max-width constraint and click-to-expand */}
-                          <img
-                            src={fileUrl}
-                            alt={file.name}
-                            className="max-w-full max-h-[300px] object-contain cursor-pointer hover:opacity-90 transition-opacity"
-                            style={{ maxWidth: '100%' }}
-                            onLoad={() => {
-                              setImageLoadingStates(prev => ({ ...prev, [imageKey]: false }));
-                            }}
-                            onLoadStart={() => {
-                              setImageLoadingStates(prev => ({ ...prev, [imageKey]: true }));
-                            }}
-                            onClick={() => {
-                              setImagePreview({ url: fileUrl, fileName: file.name });
-                            }}
-                            onError={(e) => {
-                              setImageLoadingStates(prev => ({ ...prev, [imageKey]: false }));
-                              // Hide the broken image and show fallback
-                              e.currentTarget.style.display = 'none';
-                              const parent = e.currentTarget.parentElement?.parentElement;
-                              if (parent) {
-                                const fallback = parent.querySelector('.file-fallback');
-                                if (fallback) (fallback as HTMLElement).style.display = 'flex';
-                              }
-                            }}
-                          />
-                        </div>
-                      ) : null}
-                      {/* Fallback for non-images or failed images */}
-                      <div className="file-fallback flex items-center gap-2 bg-navy-800 px-3 py-2 max-w-full" style={{ display: isImage && fileUrl ? 'none' : 'flex' }}>
-                        <svg
-                          className="w-4 h-4 text-text-secondary flex-shrink-0"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                          />
+                  // Get file icon based on type
+                  const getUploadedFileIcon = () => {
+                    if (isImage) {
+                      return (
+                        <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8.5,13.5L11,16.5L14.5,12L19,18H5M21,19V5C21,3.89 20.1,3 19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19Z" />
                         </svg>
-                        <span className="text-xs font-medium text-text-primary truncate max-w-[150px]">
-                          {file.name}
+                      );
+                    }
+                    return (
+                      <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      </svg>
+                    );
+                  };
+
+                  return (
+                    <button
+                      key={imageKey}
+                      onClick={() => {
+                        if (isImage && fileUrl) {
+                          setImagePreview({ url: fileUrl, fileName: file.name });
+                        }
+                      }}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-full text-sm transition-colors"
+                    >
+                      {getUploadedFileIcon()}
+                      <span className="font-medium text-gray-900 truncate max-w-[200px]">
+                        {file.name}
+                      </span>
+                      {file.size && (
+                        <span className="text-xs text-gray-500">
+                          {(file.size / 1024).toFixed(1)} KB
                         </span>
-                      </div>
-                    </div>
+                      )}
+                    </button>
                   );
                 })}
               </div>

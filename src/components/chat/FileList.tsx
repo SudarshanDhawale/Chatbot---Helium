@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { formatFileSize } from '@/utils/format';
 import type { ChatMessage } from '@/types/chat';
 import { ImagePreviewModal } from './ImagePreviewModal';
@@ -106,6 +106,162 @@ interface FileListProps {
   files: ChatMessage['files'];
   threadId: string | null;
   projectId: string | null;
+}
+
+// Component to handle file preview/download with API key authentication
+function ImagePreview({ 
+  file, 
+  threadId, 
+  projectId, 
+  onPreview 
+}: { 
+  file: { file_id: string; file_name: string; file_size: number };
+  threadId: string | null;
+  projectId: string | null;
+  onPreview: (imageUrl: string) => void;
+}) {
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  // Check if file is an image
+  const isImage = (fileName: string): boolean => {
+    const ext = fileName.split('.').pop()?.toLowerCase() || '';
+    return ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp'].includes(ext);
+  };
+
+  const isImageFile = isImage(file.file_name);
+
+  useEffect(() => {
+    if (!threadId || !projectId) {
+      setError(true);
+      setLoading(false);
+      return;
+    }
+
+    // Only fetch if it's an image
+    if (!isImageFile) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchImage = async () => {
+      try {
+        const params = new URLSearchParams({
+          thread_id: threadId,
+          project_id: projectId,
+        });
+        const apiKey = localStorage.getItem('helium_api_key');
+        const headers: HeadersInit = apiKey ? { 'x-helium-api-key': apiKey } : {};
+        
+        const response = await fetch(
+          `/api/files/${encodeURIComponent(file.file_id)}?${params.toString()}`,
+          { headers }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to load image');
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        setImageUrl(url);
+        setLoading(false);
+      } catch (err) {
+        setError(true);
+        setLoading(false);
+      }
+    };
+
+    fetchImage();
+
+    // Cleanup
+    return () => {
+      if (imageUrl) {
+        window.URL.revokeObjectURL(imageUrl);
+      }
+    };
+  }, [file.file_id, threadId, projectId, isImageFile]);
+
+  const handleClick = async () => {
+    if (isImageFile && imageUrl && !loading && !error) {
+      onPreview(imageUrl);
+    } else if (!isImageFile && threadId && projectId) {
+      // Download non-image files
+      try {
+        const params = new URLSearchParams({
+          thread_id: threadId,
+          project_id: projectId,
+        });
+        const apiKey = localStorage.getItem('helium_api_key');
+        const headers: HeadersInit = apiKey ? { 'x-helium-api-key': apiKey } : {};
+        
+        const response = await fetch(
+          `/api/files/${encodeURIComponent(file.file_id)}?${params.toString()}`,
+          { headers }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to download file');
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.file_name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      } catch (err) {
+        alert(`Failed to download file: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
+    }
+  };
+
+  if (loading && isImageFile) {
+    return (
+      <button
+        disabled
+        className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 border border-gray-300 rounded-full text-sm opacity-50 cursor-not-allowed"
+      >
+        <div className="w-4 h-4 border-2 border-gray-400 border-t-blue-500 rounded-full animate-spin" />
+        <span className="font-medium text-gray-900 truncate max-w-[200px]">
+          {file.file_name}
+        </span>
+      </button>
+    );
+  }
+
+  if (error && isImageFile) {
+    return (
+      <button
+        disabled
+        className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 border border-gray-300 rounded-full text-sm opacity-50 cursor-not-allowed"
+      >
+        {getFileIcon(file.file_name)}
+        <span className="font-medium text-gray-900 truncate max-w-[200px]">
+          {file.file_name}
+        </span>
+      </button>
+    );
+  }
+
+  return (
+    <button
+      onClick={handleClick}
+      className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-full text-sm transition-colors"
+    >
+      {getFileIcon(file.file_name)}
+      <span className="font-medium text-gray-900 truncate max-w-[200px]">
+        {file.file_name}
+      </span>
+      <span className="text-xs text-gray-500">
+        {formatFileSize(file.file_size)}
+      </span>
+    </button>
+  );
 }
 
 export function FileList({ files, threadId, projectId }: FileListProps) {
@@ -294,128 +450,27 @@ export function FileList({ files, threadId, projectId }: FileListProps) {
 
   return (
     <>
-      <div className="w-full space-y-3">
-        {/* Separate images and other files */}
-        {(() => {
-          const imageFiles = files.filter(file => isImageFile(file.file_name));
-          const otherFiles = files.filter(file => !isImageFile(file.file_name));
-
-          return (
-            <>
-              {/* Display images inline */}
-              {imageFiles.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {imageFiles.map((file) => {
-                    const fileUrl = threadId && projectId
-                      ? `/api/files/${encodeURIComponent(file.file_id)}?thread_id=${threadId}&project_id=${projectId}`
-                      : null;
-
-                    return (
-                      <div
-                        key={file.file_id}
-                        className="relative inline-block rounded-lg overflow-hidden border border-gray-300 max-w-full cursor-pointer hover:opacity-90 transition-opacity"
-                        onClick={() => {
-                          if (fileUrl) {
-                            fetch(fileUrl)
-                              .then(res => res.blob())
-                              .then(blob => {
-                                const imageUrl = window.URL.createObjectURL(blob);
-                                setPreviewImage({
-                                  url: imageUrl,
-                                  fileName: file.file_name,
-                                  fileId: file.file_id,
-                                });
-                              })
-                              .catch(error => {
-                                alert(`Failed to load image: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                              });
-                          }
-                        }}
-                      >
-                        {fileUrl ? (
-                          <img
-                            src={fileUrl}
-                            alt={file.file_name}
-                            className="max-w-full max-h-[300px] object-contain"
-                            style={{ maxWidth: '100%' }}
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                        ) : (
-                          <div className="flex items-center gap-2 bg-gray-100 px-3 py-2">
-                            {getFileIcon(file.file_name)}
-                            <span className="text-xs font-medium text-gray-900 truncate max-w-[150px]">
-                              {file.file_name}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Display other files as download buttons */}
-              {otherFiles.length > 0 && (
-                <>
-                  <div className="text-xs font-semibold text-gray-600 mb-2 flex items-center gap-2">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                      />
-                    </svg>
-                    Related Files:
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-2">
-                    {otherFiles.map((file) => {
-                      const isDownloading = downloading.has(file.file_id);
-                      return (
-                        <button
-                          key={file.file_id}
-                          onClick={() => handleFileClick(file)}
-                          disabled={isDownloading || !threadId || !projectId}
-                          className="flex flex-col items-start bg-white border border-gray-200 rounded-lg px-3 py-3 text-sm text-gray-800 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed group shadow-[0_2px_4px_rgba(156,163,175,0.1)]"
-                        >
-                          <div className="flex items-center gap-2 w-full mb-1">
-                            {isDownloading ? (
-                              <svg
-                                className="w-5 h-5 animate-spin text-blue-500 flex-shrink-0"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                />
-                              </svg>
-                            ) : (
-                              <span className="flex-shrink-0">{getFileIcon(file.file_name)}</span>
-                            )}
-                            <span className="text-xs font-normal text-gray-500 flex-shrink-0">{formatFileSize(file.file_size)}</span>
-                          </div>
-                          <span className="font-medium text-gray-900 group-hover:text-gray-950 transition-colors duration-150 ease-in-out truncate w-full text-left text-xs">{file.file_name}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
-            </>
-          );
-        })()}
+      <div className="w-full">
+        {/* Display all files in capsule format */}
+        <div className="flex flex-wrap gap-2">
+          {files.map((file) => {
+            return (
+              <ImagePreview
+                key={file.file_id}
+                file={file}
+                threadId={threadId}
+                projectId={projectId}
+                onPreview={(imageUrl) => {
+                  setPreviewImage({
+                    url: imageUrl,
+                    fileName: file.file_name,
+                    fileId: file.file_id,
+                  });
+                }}
+              />
+            );
+          })}
+        </div>
       </div>
 
       {/* Image Preview Modal */}
