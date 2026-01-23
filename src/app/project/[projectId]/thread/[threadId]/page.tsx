@@ -842,7 +842,7 @@ export default function ThreadPage() {
 
       <div className="flex flex-col flex-1 overflow-hidden relative z-10 w-full">
         <nav className="navbar w-full bg-white border-b border-gray-200">
-          <div className="flex items-center justify-between w-full px-4">
+          <div className="flex items-center justify-between w-full px-4 h-[70px]">
             <div className="flex-1"></div>
             
             <div className="flex items-center gap-3">

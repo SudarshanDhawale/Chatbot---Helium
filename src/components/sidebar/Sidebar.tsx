@@ -1,10 +1,10 @@
 /**
- * Sidebar component with hover-based drawer functionality
+ * Sidebar component with toggle button functionality
  */
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import type { ThreadSummary } from '@/types/thread';
 
@@ -15,37 +15,15 @@ interface SidebarProps {
 }
 
 export function Sidebar({ threads = [], onThreadDeleted, onApiKeyClick }: SidebarProps) {
-  const [isHovered, setIsHovered] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const params = useParams();
   const [deletingThreadId, setDeletingThreadId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [threadToDelete, setThreadToDelete] = useState<ThreadSummary | null>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const hoverZoneRef = useRef<HTMLDivElement>(null);
 
   const currentThreadId = params?.threadId as string | undefined;
-
-  // Handle hover detection for opening/closing sidebar
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      const hoverThreshold = 50; // pixels from left edge to trigger open
-      const sidebarWidth = 256; // 64 * 4 = 256px (w-64)
-      const closeThreshold = sidebarWidth + 50; // pixels from left edge to trigger close
-
-      // Open sidebar when hovering near left edge
-      if (e.clientX <= hoverThreshold && !isHovered) {
-        setIsHovered(true);
-      }
-      // Close sidebar when mouse moves away from sidebar area
-      else if (e.clientX > closeThreshold && isHovered) {
-        setIsHovered(false);
-      }
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [isHovered]);
 
   const handleHomeClick = () => {
     router.push('/');
@@ -106,18 +84,44 @@ export function Sidebar({ threads = [], onThreadDeleted, onApiKeyClick }: Sideba
 
   return (
     <>
-      {/* Hover trigger zone - invisible area on left edge */}
-      <div
-        ref={hoverZoneRef}
-        className="fixed top-0 left-0 w-12 h-full z-40 pointer-events-auto"
-        aria-hidden="true"
-      />
+      {/* Hamburger Toggle Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-white border border-gray-200 shadow-sm hover:bg-gray-50 transition-colors duration-150"
+        aria-label={isOpen ? 'Close sidebar' : 'Open sidebar'}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          strokeWidth="2"
+          fill="none"
+          stroke="currentColor"
+          className="w-6 h-6 text-gray-700"
+        >
+          {isOpen ? (
+            // X icon when open
+            <>
+              <path d="M18 6L6 18"></path>
+              <path d="M6 6l12 12"></path>
+            </>
+          ) : (
+            // Hamburger icon when closed
+            <>
+              <path d="M3 12h18"></path>
+              <path d="M3 6h18"></path>
+              <path d="M3 18h18"></path>
+            </>
+          )}
+        </svg>
+      </button>
 
-      {/* Overlay - only visible on mobile when sidebar is hovered */}
-      {isHovered && (
+      {/* Overlay - visible when sidebar is open */}
+      {isOpen && (
         <div
-          onClick={() => setIsHovered(false)}
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity duration-300"
+          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
           aria-label="Close sidebar"
         />
       )}
@@ -125,12 +129,10 @@ export function Sidebar({ threads = [], onThreadDeleted, onApiKeyClick }: Sideba
       {/* Sidebar */}
       <aside
         ref={sidebarRef}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
         className={`
           fixed top-0 left-0 h-full bg-white border-r border-gray-200 z-50
           transition-transform duration-300 ease-in-out w-64
-          ${isHovered ? 'translate-x-0' : '-translate-x-full'}
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
         <div className="flex flex-col h-full">
@@ -162,6 +164,31 @@ export function Sidebar({ threads = [], onThreadDeleted, onApiKeyClick }: Sideba
                     <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                   </svg>
                   <span className="font-medium">New Chat</span>
+                </button>
+              </li>
+
+              {/* Analytics */}
+              <li>
+                <button
+                  onClick={() => router.push('/analytics')}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-150"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                    strokeWidth="2"
+                    fill="none"
+                    stroke="currentColor"
+                    className="w-5 h-5 flex-shrink-0"
+                  >
+                    <path d="M3 3v18h18"></path>
+                    <path d="M18 17V9"></path>
+                    <path d="M13 17V5"></path>
+                    <path d="M8 17v-3"></path>
+                  </svg>
+                  <span className="font-medium">Analytics</span>
                 </button>
               </li>
 
